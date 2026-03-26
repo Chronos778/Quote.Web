@@ -8,7 +8,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
-
+.github
 # Logs
 *.log
 npm-debug.log*

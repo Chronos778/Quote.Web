@@ -112,7 +112,7 @@
             <button class="dock-btn" onclick="shareQuote()" aria-label="Share Quote">
                 <i data-lucide="share-2" size="16"></i>
             </button>
-            <div style="width: 1px; height: 24px; background: var(--border-dim); margin: 0 4px;"></div>
+            <div class="dock-divider"></div>
             <button class="dock-btn primary" onclick="fetchNewQuote()" aria-label="Get Fresh Quote">
                 <span>Fresh Quote</span>
                 <i data-lucide="arrow-right" size="16"></i>
@@ -126,10 +126,28 @@
     <!-- Command Palette -->
     <div class="cmd-palette" id="cmd-palette">
         <div class="cmd-input-wrapper">
-            <i data-lucide="search" size="18" style="color: var(--text-muted)"></i>
-            <input type="text" class="cmd-input" placeholder="Search functionality coming soon..." disabled>
+            <i data-lucide="search" size="18" class="cmd-search-icon"></i>
+            <input type="text" class="cmd-input" placeholder="Search quotes..." disabled>
             <span class="cmd-kbd">ESC</span>
         </div>
+        <div class="cmd-filters">
+            <input type="text" id="cmd-author" class="cmd-filter-input" placeholder="Filter by author">
+            <select id="cmd-sort" class="cmd-filter-select" aria-label="Sort field">
+                <option value="">Relevance</option>
+                <option value="author">Author</option>
+                <option value="text">Quote Text</option>
+            </select>
+            <select id="cmd-order" class="cmd-filter-select" aria-label="Sort order">
+                <option value="desc">Desc</option>
+                <option value="asc">Asc</option>
+            </select>
+            <select id="cmd-limit" class="cmd-filter-select" aria-label="Results per page">
+                <option value="20" selected>20</option>
+                <option value="40">40</option>
+                <option value="60">60</option>
+            </select>
+        </div>
+        <div class="cmd-meta" id="cmd-meta"></div>
         <div class="cmd-results">
             <!-- Simulated Results -->
             <div class="cmd-item selected" onclick="fetchNewQuote(); closeAllOverlays()">
