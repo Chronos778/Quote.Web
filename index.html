@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://chronos778.github.io; font-src 'self'; connect-src 'self' https://quotes-api-ruddy.vercel.app; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="Quote.Web is a curated digital space for daily inspiration. distinct, minimal, and focused on the power of words. Powered by the Quotes API.">
@@ -65,20 +66,20 @@
             <span class="brand-name">Quote.Web</span>
         </div>
         <div class="nav-menu" role="navigation" aria-label="Primary navigation">
-            <button type="button" class="nav-item active" data-nav="discover" onclick="closeDrawer()" aria-label="Discover" aria-current="page">
+            <button type="button" class="nav-item active" data-nav="discover" data-action="nav-discover" aria-label="Discover" aria-current="page">
                 <i data-lucide="layout-grid" class="nav-icon"></i>
                 <span class="nav-label">Discover</span>
             </button>
-            <button type="button" class="nav-item" data-nav="search" onclick="toggleCommandPalette()" aria-label="Search" aria-expanded="false" aria-controls="cmd-palette">
+            <button type="button" class="nav-item" data-nav="search" data-action="toggle-search" aria-label="Search" aria-expanded="false" aria-controls="cmd-palette">
                 <i data-lucide="search" class="nav-icon"></i>
                 <span class="nav-label">Search</span>
                 <span class="shortcut-hint">Ctrl K</span>
             </button>
-            <button type="button" class="nav-item" data-nav="about" onclick="openDrawer('about')" aria-label="About">
+            <button type="button" class="nav-item" data-nav="about" data-action="open-drawer" data-drawer="about" aria-label="About">
                 <i data-lucide="info" class="nav-icon"></i>
                 <span class="nav-label">About</span>
             </button>
-            <button type="button" class="nav-item" data-nav="contact" onclick="openDrawer('contact')" aria-label="Contact">
+            <button type="button" class="nav-item" data-nav="contact" data-action="open-drawer" data-drawer="contact" aria-label="Contact">
                 <i data-lucide="mail" class="nav-icon"></i>
                 <span class="nav-label">Contact</span>
             </button>
@@ -106,14 +107,14 @@
             <i data-lucide="chevron-up" class="dock-hint-arrow"></i>
         </div>
         <div class="dock">
-            <button class="dock-btn" onclick="copyQuote()" aria-label="Copy Quote">
+            <button type="button" class="dock-btn" data-action="copy-quote" aria-label="Copy Quote">
                 <i data-lucide="copy" size="16"></i>
             </button>
-            <button class="dock-btn" onclick="shareQuote()" aria-label="Share Quote">
+            <button type="button" class="dock-btn" data-action="share-quote" aria-label="Share Quote">
                 <i data-lucide="share-2" size="16"></i>
             </button>
             <div class="dock-divider"></div>
-            <button class="dock-btn primary" onclick="fetchNewQuote()" aria-label="Get Fresh Quote">
+            <button type="button" class="dock-btn primary" data-action="fresh-quote" aria-label="Get Fresh Quote">
                 <span>Fresh Quote</span>
                 <i data-lucide="arrow-right" size="16"></i>
             </button>
@@ -121,7 +122,7 @@
     </main>
 
     <!-- Overlays -->
-    <div class="overlay-backdrop" id="backdrop" onclick="closeAllOverlays()"></div>
+    <div class="overlay-backdrop" id="backdrop" data-action="close-overlays"></div>
 
     <!-- Command Palette -->
     <div class="cmd-palette" id="cmd-palette" role="dialog" aria-modal="true" aria-label="Quote search command palette">
@@ -150,16 +151,16 @@
         <div class="cmd-meta" id="cmd-meta"></div>
         <div class="cmd-results" id="cmd-results" role="listbox" aria-label="Search results">
             <!-- Simulated Results -->
-            <div class="cmd-item selected" onclick="fetchNewQuote(); closeAllOverlays()">
+            <button type="button" class="cmd-item selected" data-action="fresh-quote-close" role="option">
                 <span>Fetch new random quote</span>
                 <span class="cmd-kbd">Space</span>
-            </div>
+            </button>
         </div>
     </div>
 
     <!-- Side Drawer -->
     <aside class="drawer" id="side-drawer">
-        <button class="drawer-close" onclick="closeDrawer()" aria-label="Close Drawer">
+        <button type="button" class="drawer-close" data-action="close-drawer" aria-label="Close Drawer">
             <i data-lucide="x" size="24"></i>
         </button>
         <div class="drawer-content" id="drawer-body">
@@ -169,15 +170,6 @@
 
     <div class="toast" id="toast">Copied to clipboard</div>
 
-    <!-- Logic -->
-    <!-- app.js moved to head with defer -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js')
-                .then(() => console.log('Service Worker Registered'))
-                .catch(err => console.error('Service Worker Failed', err));
-        }
-    </script>
 </body>
 
 </html>

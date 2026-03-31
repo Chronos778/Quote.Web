@@ -1012,9 +1012,64 @@ function closeAllOverlays() {
     ui.cmdInput.setAttribute('aria-activedescendant', '');
 }
 
+function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker Registered'))
+        .catch((error) => console.error('Service Worker Failed', error));
+}
+
+async function handleActionClick(event) {
+    const actionElement = event.target.closest('[data-action]');
+    if (!actionElement) return;
+
+    const { action } = actionElement.dataset;
+    if (!action) return;
+
+    switch (action) {
+        case 'nav-discover':
+            closeDrawer();
+            break;
+        case 'toggle-search':
+            toggleCommandPalette();
+            break;
+        case 'open-drawer': {
+            const drawerType = actionElement.dataset.drawer;
+            if (drawerType && content[drawerType]) {
+                openDrawer(drawerType);
+            }
+            break;
+        }
+        case 'copy-quote':
+            await copyQuote();
+            break;
+        case 'share-quote':
+            await shareQuote();
+            break;
+        case 'fresh-quote':
+            await fetchNewQuote();
+            break;
+        case 'fresh-quote-close':
+            await fetchNewQuote();
+            closeAllOverlays();
+            break;
+        case 'close-overlays':
+            closeAllOverlays();
+            break;
+        case 'close-drawer':
+            closeDrawer();
+            break;
+        default:
+            break;
+    }
+}
+
 // --- Initialization ---
 
 document.addEventListener('DOMContentLoaded', () => {
+    registerServiceWorker();
+
     // Icons
     if (window.lucide) {
         lucide.createIcons();
@@ -1033,6 +1088,10 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleCommandPalette();
         }
         if (e.key === 'Escape') closeAllOverlays();
+    });
+
+    document.addEventListener('click', (e) => {
+        handleActionClick(e);
     });
 
     ui.cmdInput.addEventListener('keydown', (e) => {
