@@ -129,16 +129,20 @@ class Starfield {
 
 const API_BASE = "https://quotes-api-ruddy.vercel.app";
 const OFFLINE_QUOTES_PATH = './assets/data/offline-quotes.json';
+const OFFLINE_QUOTES_RETRY_INTERVAL_MS = 60 * 1000;
 const SEARCH_PAGE_SIZE = 20;
 const MAX_RATE_LIMIT_RETRIES = 2;
 const SEARCH_LIMIT_OPTIONS = [20, 40, 60];
 let searchTimeout;
 let activeSearchRequestId = 0;
 let offlineQuoteCache = null;
+let offlineQuoteCacheSource = 'none';
+let lastOfflineQuotesFetchAttemptAt = 0;
 let selectedSearchIndex = -1;
 let lastFocusedElementBeforeOverlay = null;
 let activeQuoteRequestId = 0;
 let toastTimeoutId = null;
+let currentSearchAbortController = null;
 
 const searchState = {
     query: '',
@@ -177,13 +181,14 @@ function toApiUrl(path, params = {}) {
     return url.toString();
 }
 
-async function fetchApiJson(path, { params = {}, retries = MAX_RATE_LIMIT_RETRIES } = {}) {
+async function fetchApiJson(path, { params = {}, retries = MAX_RATE_LIMIT_RETRIES, signal } = {}) {
     let lastError;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
         try {
             const response = await fetch(toApiUrl(path, params), {
-                headers: { 'Accept': 'application/json' }
+                headers: { 'Accept': 'application/json' },
+                signal
             });
 
             const contentType = response.headers.get('content-type') || '';
@@ -211,6 +216,10 @@ async function fetchApiJson(path, { params = {}, retries = MAX_RATE_LIMIT_RETRIE
 
             throw new ApiError(response.status, message || `Request failed with status ${response.status}`, payload);
         } catch (error) {
+            if (error?.name === 'AbortError') {
+                throw error;
+            }
+
             lastError = error;
 
             if (attempt < retries && !(error instanceof ApiError)) {
@@ -286,7 +295,7 @@ async function fetchQOD() {
 
         if (json?.success && quote) {
             if (requestId !== activeQuoteRequestId) return;
-            renderQuote(quote);
+            renderQuote(quote, requestId);
             return;
         }
 
@@ -318,11 +327,22 @@ const fallbackOfflineQuotes = [
 ];
 
 async function getOfflineQuotesPool() {
-    if (Array.isArray(offlineQuoteCache) && offlineQuoteCache.length > 0) {
+    if (Array.isArray(offlineQuoteCache) && offlineQuoteCache.length > 0 && offlineQuoteCacheSource === 'file') {
+        return offlineQuoteCache;
+    }
+
+    const hasCachedFallback = Array.isArray(offlineQuoteCache) && offlineQuoteCache.length > 0 && offlineQuoteCacheSource === 'fallback';
+    const now = Date.now();
+    const shouldRetryFileFetch = offlineQuoteCacheSource !== 'fallback'
+        || (now - lastOfflineQuotesFetchAttemptAt >= OFFLINE_QUOTES_RETRY_INTERVAL_MS)
+        || navigator.onLine;
+
+    if (!shouldRetryFileFetch && hasCachedFallback) {
         return offlineQuoteCache;
     }
 
     try {
+        lastOfflineQuotesFetchAttemptAt = now;
         const response = await fetch(OFFLINE_QUOTES_PATH, { cache: 'force-cache' });
         if (!response.ok) {
             throw new Error(`Offline quote file unavailable (${response.status})`);
@@ -339,6 +359,7 @@ async function getOfflineQuotesPool() {
 
         if (normalized.length > 0) {
             offlineQuoteCache = normalized;
+            offlineQuoteCacheSource = 'file';
             return normalized;
         }
     } catch (error) {
@@ -346,6 +367,7 @@ async function getOfflineQuotesPool() {
     }
 
     offlineQuoteCache = fallbackOfflineQuotes;
+    offlineQuoteCacheSource = 'fallback';
     return fallbackOfflineQuotes;
 }
 
@@ -365,7 +387,7 @@ async function fetchNewQuote() {
         }
 
         if (requestId !== activeQuoteRequestId) return;
-        renderQuote(quote);
+        renderQuote(quote, requestId);
     } catch (error) {
         console.warn("Using offline quote due to:", error.message);
         if (error instanceof ApiError && error.status === 429) {
@@ -385,12 +407,14 @@ async function renderOfflineQuote(label = 'Offline Inspiration', requestId = act
         text: 'Stay curious and keep building.',
         author: 'Quote.Web'
     };
-    renderQuote(randomQuote);
+    renderQuote(randomQuote, requestId);
     if (ui.badge) ui.badge.innerText = label;
 }
 
-function renderQuote(data) {
+function renderQuote(data, requestId = activeQuoteRequestId) {
     setTimeout(() => {
+        if (requestId !== activeQuoteRequestId) return;
+
         ui.text.innerText = `"${data.text}"`;
         ui.author.innerText = data.author || "Unknown";
 
@@ -427,13 +451,16 @@ async function copyQuote() {
         fallbackInput.style.position = 'fixed';
         fallbackInput.style.opacity = '0';
         document.body.appendChild(fallbackInput);
-        fallbackInput.select();
 
-        const success = document.execCommand('copy');
-        document.body.removeChild(fallbackInput);
+        try {
+            fallbackInput.select();
+            const success = document.execCommand('copy');
 
-        if (!success) {
-            throw new Error('Clipboard command was rejected');
+            if (!success) {
+                throw new Error('Clipboard command was rejected');
+            }
+        } finally {
+            fallbackInput.remove();
         }
 
         showToast('Copied to clipboard');
@@ -675,7 +702,7 @@ function getSearchErrorMessage(error) {
     return 'Search failed. Check your connection and retry.';
 }
 
-async function fetchSearchPayload(query, page, filters) {
+async function fetchSearchPayload(query, page, filters, { signal } = {}) {
     const listingParams = {
         q: query || undefined,
         author: filters.author || undefined,
@@ -686,7 +713,7 @@ async function fetchSearchPayload(query, page, filters) {
     };
 
     try {
-        return await fetchApiJson('/quotes', { params: listingParams });
+        return await fetchApiJson('/quotes', { params: listingParams, signal });
     } catch (error) {
         const canFallbackToLegacySearch = error instanceof ApiError && (error.status === 404 || error.status === 405);
         if (!canFallbackToLegacySearch) {
@@ -699,12 +726,19 @@ async function fetchSearchPayload(query, page, filters) {
             limit: filters.limit
         };
 
-        return fetchApiJson('/quotes/search', { params: legacySearchParams });
+        return fetchApiJson('/quotes/search', { params: legacySearchParams, signal });
     }
 }
 
 async function runSearch(query, { append = false } = {}) {
     if (append && searchState.isLoading) return;
+
+    if (currentSearchAbortController) {
+        currentSearchAbortController.abort();
+    }
+
+    currentSearchAbortController = new AbortController();
+    const { signal } = currentSearchAbortController;
 
     const filters = append ? searchState.filters : getSearchFiltersFromUI();
     const requestedPage = append ? searchState.page + 1 : 1;
@@ -719,7 +753,7 @@ async function runSearch(query, { append = false } = {}) {
     renderSearchResults(searchState.results, { isLoading: true, canLoadMore: false });
 
     try {
-        const json = await fetchSearchPayload(query, requestedPage, filters);
+        const json = await fetchSearchPayload(query, requestedPage, filters, { signal });
 
         if (requestId !== activeSearchRequestId) return;
 
@@ -738,6 +772,10 @@ async function runSearch(query, { append = false } = {}) {
             isLoading: false
         });
     } catch (error) {
+        if (error?.name === 'AbortError') {
+            return;
+        }
+
         if (requestId !== activeSearchRequestId) return;
 
         console.error("Search failed", error);
@@ -762,6 +800,10 @@ async function runSearch(query, { append = false } = {}) {
         if (requestId === activeSearchRequestId) {
             searchState.isLoading = false;
         }
+
+        if (currentSearchAbortController?.signal === signal) {
+            currentSearchAbortController = null;
+        }
     }
 }
 
@@ -776,6 +818,11 @@ function handleSearch() {
     if (searchTimeout) clearTimeout(searchTimeout);
 
     if (!isSearchInputActive()) {
+        if (currentSearchAbortController) {
+            currentSearchAbortController.abort();
+            currentSearchAbortController = null;
+        }
+
         activeSearchRequestId++;
         resetSearchState(query);
         selectedSearchIndex = -1;
@@ -852,7 +899,8 @@ function renderSearchResults(results, { isLoading = false, canLoadMore = false, 
         resultButton.appendChild(content);
 
         resultButton.onclick = () => {
-            renderQuote(quote);
+            const requestId = ++activeQuoteRequestId;
+            renderQuote(quote, requestId);
             closeAllOverlays();
             if (ui.badge) ui.badge.innerText = "Search Result";
         };
