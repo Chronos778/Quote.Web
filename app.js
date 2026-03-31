@@ -132,7 +132,7 @@ class Starfield {
 
 // --- Application State & Logic ---
 
-const API_BASE = 'https://quotes-api-ruddy.vercel.app';
+const DEFAULT_API_BASE = 'https://quotes-api-ruddy.vercel.app';
 const OFFLINE_QUOTES_PATH = './assets/data/offline-quotes.json';
 const OFFLINE_QUOTES_RETRY_INTERVAL_MS = 60 * 1000;
 const SEARCH_PAGE_SIZE = 20;
@@ -143,6 +143,8 @@ const QUOTE_RENDER_DELAY_MS = 300;
 const TOAST_DURATION_MS = 2000;
 const RATE_LIMIT_BASE_DELAY_MS = 500;
 const NETWORK_RETRY_BASE_DELAY_MS = 300;
+const VALID_SEARCH_SORT_FIELDS = ['author', 'text'];
+const VALID_SEARCH_ORDERS = ['asc', 'desc'];
 let searchTimeout;
 let activeSearchRequestId = 0;
 let offlineQuoteCache = null;
@@ -153,6 +155,39 @@ let lastFocusedElementBeforeOverlay = null;
 let activeQuoteRequestId = 0;
 let toastTimeoutId = null;
 let currentSearchAbortController = null;
+
+function readRuntimeConfig() {
+  const metaApiBase = document
+    .querySelector('meta[name="quote-web-api-base"]')
+    ?.getAttribute('content')
+    ?.trim();
+
+  const globalApiBase = window?.QUOTE_WEB_CONFIG?.apiBaseUrl?.trim();
+  const candidateApiBase = globalApiBase || metaApiBase || DEFAULT_API_BASE;
+
+  try {
+    const normalized = new URL(candidateApiBase);
+    return { apiBaseUrl: normalized.origin };
+  } catch {
+    console.warn('Invalid API base URL runtime configuration. Falling back to default.');
+    return { apiBaseUrl: DEFAULT_API_BASE };
+  }
+}
+
+const { apiBaseUrl: API_BASE } = readRuntimeConfig();
+
+function sanitizeSearchFilters(filters) {
+  const candidateSort = (filters?.sort || '').trim();
+  const candidateOrder = (filters?.order || '').trim().toLowerCase();
+  const parsedLimit = Number(filters?.limit || SEARCH_PAGE_SIZE);
+
+  return {
+    author: (filters?.author || '').trim(),
+    sort: VALID_SEARCH_SORT_FIELDS.includes(candidateSort) ? candidateSort : '',
+    order: VALID_SEARCH_ORDERS.includes(candidateOrder) ? candidateOrder : 'desc',
+    limit: SEARCH_LIMIT_OPTIONS.includes(parsedLimit) ? parsedLimit : SEARCH_PAGE_SIZE,
+  };
+}
 
 const searchState = {
   query: '',
@@ -577,15 +612,12 @@ function markPaletteExpanded(isExpanded) {
 }
 
 function getSearchFiltersFromUI() {
-  const parsedLimit = Number(ui.cmdLimit?.value || SEARCH_PAGE_SIZE);
-  const limit = SEARCH_LIMIT_OPTIONS.includes(parsedLimit) ? parsedLimit : SEARCH_PAGE_SIZE;
-
-  return {
-    author: (ui.cmdAuthor?.value || '').trim(),
-    sort: (ui.cmdSort?.value || '').trim(),
-    order: (ui.cmdOrder?.value || 'desc').trim() || 'desc',
-    limit,
-  };
+  return sanitizeSearchFilters({
+    author: ui.cmdAuthor?.value || '',
+    sort: ui.cmdSort?.value || '',
+    order: ui.cmdOrder?.value || 'desc',
+    limit: ui.cmdLimit?.value || SEARCH_PAGE_SIZE,
+  });
 }
 
 function isSearchInputActive() {
@@ -1063,6 +1095,22 @@ function registerServiceWorker() {
     .catch((error) => console.error('Service Worker Failed', error));
 }
 
+function registerGlobalErrorHandlers() {
+  window.addEventListener('error', (event) => {
+    console.error('Unhandled runtime error', {
+      message: event.message,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      error: event.error,
+    });
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    console.error('Unhandled promise rejection', event.reason);
+  });
+}
+
 async function handleActionClick(event) {
   const actionElement = event.target.closest('[data-action]');
   if (!actionElement) return;
@@ -1128,6 +1176,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   registerServiceWorker();
+  registerGlobalErrorHandlers();
 
   // Icons
   if (window.lucide) {

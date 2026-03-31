@@ -2,9 +2,8 @@
 .DS_Store
 Thumbs.db
 
-# Copilot configuration
+# Generated tool metadata
 .github/copilot-instructions.md
-.github/copilot-instruction.md
 
 # Editor directories
 .vscode/
@@ -23,10 +22,6 @@ npm-debug.log*
 .prettiercache
 .npm
 
-# Scripts
-*.ps1
-
 # Temporary files
 *.zip
-ua.txt
-fonts.css
+config.local.js

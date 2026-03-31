@@ -15,7 +15,7 @@
   font-family: 'Fraunces';
   font-style: normal;
   font-weight: 400;
-  /* Fallback alias to 500 if 400 missing, or mapped to 300? using 500 for better read */
+  /* Map 400 to nearest bundled weight to keep local-font rendering consistent. */
   font-display: swap;
   src:
     url('./assets/fonts/fraunces/fraunces-v38-latin-500.woff2') format('woff2'),
@@ -47,7 +47,7 @@
   font-family: 'Manrope';
   font-style: normal;
   font-weight: 400;
-  /* Alias 400 to 500 since 400 is missing locally */
+  /* Map 400 to nearest bundled weight to keep local-font rendering consistent. */
   font-display: swap;
   src:
     url('./assets/fonts/manrope/manrope-v20-latin-500.woff2') format('woff2'),

@@ -1,144 +1,201 @@
 # Quote.Web
 
-A modern, dark-themed Progressive Web App (PWA) for daily inspiration. Browse random quotes with a premium UI, search the collection, and enjoy a fully offline-capable experience.
+Quote.Web is a production-focused Progressive Web App for daily inspiration. It delivers quote discovery with an immersive reader experience, fast search, and robust offline behavior.
+
+Live demo: https://chronos778.github.io/quote.web
 
 ## Features
 
-- **Progressive Web App** — Installable on any device with native-like experience
-- **Offline Support** — Works without internet (icons, fonts, and cached offline quote dataset)
-- **Immersive Reader** — Distraction-free interface with expressive typography
-- **Command Palette** — Instant quote discovery with text search, author filter, sort/order, and load-more pagination (`Ctrl+K`)
-- **API-Ready UX** — Handles rate limits (`429`) with retry/backoff and graceful offline fallback
-- **Dark Theme** — Premium aesthetic with animated starfield background
-- **Mobile Optimized** — Adaptive layout with safe-area support for all devices
-- **Performance First** — Deferred scripts, self-hosted fonts, reduced-motion support, visibility-aware canvas animation
+- Installable PWA with standalone app behavior
+- Quote of the day + random quote fetch flow
+- Command-palette search (Ctrl+K) with filters, sorting, and pagination
+- Offline-first fallback using cached dataset and service worker caching
+- Retry/backoff handling for API rate limits and transient network errors
+- Mobile-optimized UI with accessibility-focused keyboard interactions
 
-## Quick Start
+## Tech Stack
 
-### Online
+- HTML5
+- CSS3
+- Vanilla JavaScript (ES6+)
+- Service Worker API
+- Web App Manifest
+- Lucide icons (self-hosted)
 
-Visit the live website: [Quote.Web](https://chronos778.github.io/quote.web)
+## Installation
 
-### Local Development
+1. Clone the repository.
 
-1. Clone this repository:
+```bash
+git clone https://github.com/Chronos778/quote.web.git
+cd quote.web
+```
 
-   ```bash
-   git clone https://github.com/Chronos778/quote.web.git
-   cd quote.web
-   ```
+2. Install tooling dependencies.
 
-2. Serve using any HTTP server (required for Service Worker):
+```bash
+npm ci
+```
 
-   ```bash
-   # Python
-   python -m http.server 8080
+3. Start a local static server (service worker requires HTTP origin).
 
-   # Node.js
-   npx serve .
-   ```
+```bash
+npx serve .
+```
 
-3. Open `http://localhost:8080` in your browser.
+4. Open http://localhost:3000 (or printed serve port).
 
-## PWA Installation
+## Usage
 
-Quote.Web can be installed as a standalone application:
+- Click Fresh Quote to load a random quote
+- Press Ctrl+K (Cmd+K on macOS) to open search
+- Use author, sort, order, and limit filters in the command palette
+- Use Arrow keys and Enter for keyboard-first result navigation
 
-1. Visit the website in Chrome, Edge, or Safari
-2. Click the "Install" icon in the address bar (or use browser menu)
-3. The app will appear on your home screen or desktop
+## Environment Configuration
 
-## API Integration
+This is a static project, so runtime config is file-driven.
 
-Quote.Web fetches data from the [Quotes API](https://quotes-api-ruddy.vercel.app):
+- Runtime config source priority:
 
-| Endpoint             | Description                              |
-| -------------------- | ---------------------------------------- |
-| `/quotes/qod`        | Quote of the Day (shown on initial load) |
-| `/quotes/random`     | Random inspirational quote               |
-| `/quotes?...`        | Paginated listing + text/author filters  |
-| `/quotes/search?...` | Legacy search fallback compatibility     |
+1. window.QUOTE_WEB_CONFIG.apiBaseUrl in config.js
+2. meta[name="quote-web-api-base"] in index.html
+3. Default fallback in app.js
 
-When offline, the app serves quotes from a cached JSON dataset at assets/data/offline-quotes.json, with a small in-bundle emergency fallback.
+- Environment template is documented in .env.example for deployment tooling.
 
-Search requests use `q`, `page`, `limit`, `author`, `sort`, and `order` when available.
-The command palette includes author filtering, sort/order selectors, and page-size selection (20/40/60), with "Load more" support for paginated results.
-Rate limits (`429`) are handled with retry/backoff and graceful fallback messaging.
+Example config.js:
 
-The app first attempts paginated listing/search via `/quotes` and falls back to `/quotes/search` for legacy compatibility.
+```js
+window.QUOTE_WEB_CONFIG = Object.freeze({
+  apiBaseUrl: 'https://quotes-api-ruddy.vercel.app',
+});
+```
 
-## Keyboard Shortcuts
+## Scripts
 
-- `Ctrl + K` — Open search command palette
-- `Arrow Up/Down` — Navigate search results
-- `Enter` — Select highlighted result (or first item)
-- `Escape` — Close overlays
+- npm run lint: ESLint checks
+- npm run format: Prettier write mode
+- npm run format:check: formatting verification
+- npm run check: lint + format check
+- npm test: alias for check
 
-## Technologies
+## Project Audit Summary
 
-- **HTML5** — Semantic structure
-- **CSS3** — Custom properties, responsive design, glassmorphism effects
-- **JavaScript (ES6+)** — No frameworks, vanilla implementation
-- **Service Worker** — Offline caching and PWA support
-- **Canvas API** — Performant starfield animation
-- **Lucide Icons** — Self-hosted icon library
+### What the project does
 
-## Project Structure
+Quote.Web is a client-side PWA that fetches quotes from a remote API, supports search/filter flows, and provides offline fallback through service worker caching plus local JSON fallback data.
+
+### Issues found during audit
+
+- Local editor-only settings were committed
+- Inconsistent licensing metadata between package.json and LICENSE
+- Placeholder test script failed by design and was not CI-friendly
+- Ambiguous implementation comments reduced repo polish
+- Runtime API base URL had no explicit configuration contract
+
+## Cleanup and Removal
+
+### Removed
+
+- .vscode/settings.json
+  Reason: local developer preference (Live Server port) should not be versioned in a public production repo.
+
+### Cleaned
+
+- .gitignore stale entries removed and tightened
+- Ambiguous font fallback comments rewritten for clarity
+- Placeholder toolbar comment removed from index.html
+
+## Codebase Refinement
+
+- Added runtime config reader with URL validation and safe fallback
+- Added search filter sanitization for sort/order/limit constraints
+- Added global error and unhandled promise rejection logging hooks
+- Preserved existing UX while improving reliability and maintainability
+
+## Production Readiness Improvements
+
+- Runtime API base configuration support via config.js + meta fallback
+- Added .env.example to formalize deployment variable expectations
+- Added consolidated npm run check quality gate
+- Updated CI workflow to Node 22 with npm cache and unified quality check
+
+## Dependency and Build Optimization
+
+- package.json license aligned to MIT
+- test script now runs meaningful checks instead of guaranteed failure
+- Added Node engine requirement (>=20)
+- Consolidated quality command to reduce CI duplication
+
+## Folder Structure
+
+### Before
 
 ```text
 quote.web/
-├── index.html           # Main HTML document
-├── styles.css           # Styles including @font-face declarations
-├── app.js               # Application logic
-├── service-worker.js    # PWA caching strategy
-├── manifest.json        # PWA manifest
-├── lucide.min.js        # Local icon library
-├── assets/
-│   ├── fonts/           # Self-hosted Fraunces and Manrope
-│   ├── icons/           # PWA application icons
-│   └── screenshots/     # PWA install screenshots
-├── README.md            # This file
-├── LICENSE              # MIT License
-└── .gitignore           # Git ignore rules
+   app.js
+   index.html
+   styles.css
+   service-worker.js
+   manifest.json
+   lucide.min.js
+   assets/
+   .vscode/settings.json
 ```
 
-## Browser Support
+### After
 
-| Browser         | Minimum Version     |
-| --------------- | ------------------- |
-| Chrome          | 80+                 |
-| Firefox         | 75+                 |
-| Safari          | 13+                 |
-| Edge            | 80+                 |
-| Mobile browsers | iOS 13+, Android 8+ |
+```text
+quote.web/
+   .github/
+      workflows/
+         ci.yml
+   assets/
+      data/
+         offline-quotes.json
+      fonts/
+      icons/
+      screenshots/
+   app.js
+   config.js
+   index.html
+   styles.css
+   service-worker.js
+   manifest.json
+   lucide.min.js
+   .env.example
+   .gitignore
+   package.json
+   README.md
+   LICENSE
+```
 
-## Manual QA Checklist
+## Screenshots
 
-Before releasing major updates, verify the following core interactions:
+- Desktop: assets/screenshots/desktop.png
+- Mobile: assets/screenshots/mobile.png
 
-- **Mobile "Fresh Quote" Tap:** Ensure the tap area is responsive and does not double-trigger.
-- **Rapid Search Typing:** Type quickly in the command palette; ensure debounce prevents flashing, results order is maintained, and pagination stays smooth.
-- **Offline Fallback:** Disconnect network and verify the app serves the cached quote dataset gracefully without breaking layout.
-- **Drawer Open/Close:** Open search/settings drawers and press `Escape`, click outside, or swipe to dismiss; verify animations and scroll locks behave correctly.
-- **Copy/Share:** Verify the copy to clipboard and native Web Share API (if available) triggers the correct success states.
+## Repo Hygiene
 
-## Contributing
+- .gitignore now avoids stale patterns and tracks only meaningful exclusions
+- Recommended commit style: imperative, concise
+  - feat: add runtime API config fallback
+  - fix: sanitize search filter inputs
+  - chore: align CI quality checks
+- Suggested branch strategy:
+  - main: stable releases
+  - feature/\*: features
+  - fix/\*: bug fixes
+  - chore/\*: maintenance
 
-Contributions are welcome. Please feel free to:
+## Future Improvements
 
-- Report bugs
-- Suggest new features
-- Submit pull requests
-- Improve documentation
+- Add automated browser tests for critical user flows (search, offline mode, copy/share)
+- Add structured telemetry endpoint for production diagnostics
+- Split app.js into modules (api, ui, search, offline) once feature scope grows
+- Add release automation and changelog generation
 
 ## License
 
-MIT License — See [LICENSE](LICENSE) file for details.
-
-## Author
-
-Created by [Chronos778](https://github.com/Chronos778)
-
----
-
-Built for daily inspiration.
+MIT. See LICENSE.

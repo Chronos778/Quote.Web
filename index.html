@@ -16,6 +16,7 @@
       content="quotes, inspiration, daily quote, minimal, design, typography, developer API"
     />
     <meta name="author" content="Chronos778" />
+    <meta name="quote-web-api-base" content="https://quotes-api-ruddy.vercel.app" />
     <meta name="google-site-verification" content="WvpusEFiXCmsFEYt_V7FHeodzg7VpVPjutkTRHwJxXI" />
 
     <!-- Open Graph / Facebook -->
@@ -64,6 +65,9 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="styles.css" />
+
+    <!-- Runtime config -->
+    <script src="config.js" defer></script>
 
     <!-- Logic -->
     <script src="app.js" defer></script>
@@ -133,9 +137,7 @@
 
     <!-- Main Workspace -->
     <main class="workspace">
-      <div class="toolbar">
-        <!-- Future implementation: User profile or settings -->
-      </div>
+      <div class="toolbar"></div>
 
       <!-- Reader View -->
       <article class="reader-container">
