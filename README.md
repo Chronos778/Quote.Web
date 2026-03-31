@@ -38,12 +38,12 @@ Open http://localhost:3000 in your browser.
 
 ## Usage Guide
 
-| Action | Description |
-|--------|-------------|
-| **Fresh Quote** | Click the button to load a random quote |
-| **Search** | Press Ctrl+K (Cmd+K on macOS) to open the command palette |
-| **Filters** | Use author, sort, order, and limit filters in search |
-| **Navigation** | Use Arrow keys to browse results, Enter to select |
+| Action          | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| **Fresh Quote** | Click the button to load a random quote                   |
+| **Search**      | Press Ctrl+K (Cmd+K on macOS) to open the command palette |
+| **Filters**     | Use author, sort, order, and limit filters in search      |
+| **Navigation**  | Use Arrow keys to browse results, Enter to select         |
 
 ## Configuration
 
@@ -104,12 +104,12 @@ quote.web/
 
 Supported on modern browsers with PWA and Service Worker support:
 
-| Browser | Version |
-|---------|---------|
-| Chrome / Edge | 51+ |
-| Firefox | 44+ |
-| Safari | 11.1+ |
-| Opera | 39+ |
+| Browser       | Version |
+| ------------- | ------- |
+| Chrome / Edge | 51+     |
+| Firefox       | 44+     |
+| Safari        | 11.1+   |
+| Opera         | 39+     |
 
 ## Contributing
 
@@ -124,6 +124,7 @@ Contributions are welcome! Follow these steps:
 ### Commit Convention
 
 Please use conventional commits for clear history:
+
 - `feat:` for new features
 - `fix:` for bug fixes
 - `chore:` for maintenance tasks
