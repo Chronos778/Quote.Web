@@ -33,7 +33,7 @@ Visit the live website: [Quote.Web](https://chronos778.github.io/quote.web)
    ```bash
    # Python
    python -m http.server 8080
-   
+
    # Node.js
    npx serve .
    ```
@@ -52,12 +52,12 @@ Quote.Web can be installed as a standalone application:
 
 Quote.Web fetches data from the [Quotes API](https://quotes-api-ruddy.vercel.app):
 
-| Endpoint               | Description                              |
-| ---------------------- | ---------------------------------------- |
-| `/quotes/qod`          | Quote of the Day (shown on initial load) |
-| `/quotes/random`       | Random inspirational quote               |
-| `/quotes?...`          | Paginated listing + text/author filters  |
-| `/quotes/search?...`   | Legacy search fallback compatibility     |
+| Endpoint             | Description                              |
+| -------------------- | ---------------------------------------- |
+| `/quotes/qod`        | Quote of the Day (shown on initial load) |
+| `/quotes/random`     | Random inspirational quote               |
+| `/quotes?...`        | Paginated listing + text/author filters  |
+| `/quotes/search?...` | Legacy search fallback compatibility     |
 
 When offline, the app serves quotes from a cached JSON dataset at assets/data/offline-quotes.json, with a small in-bundle emergency fallback.
 
@@ -104,13 +104,23 @@ quote.web/
 
 ## Browser Support
 
-| Browser         | Minimum Version      |
-| --------------- | -------------------- |
-| Chrome          | 80+                  |
-| Firefox         | 75+                  |
-| Safari          | 13+                  |
-| Edge            | 80+                  |
-| Mobile browsers | iOS 13+, Android 8+  |
+| Browser         | Minimum Version     |
+| --------------- | ------------------- |
+| Chrome          | 80+                 |
+| Firefox         | 75+                 |
+| Safari          | 13+                 |
+| Edge            | 80+                 |
+| Mobile browsers | iOS 13+, Android 8+ |
+
+## Manual QA Checklist
+
+Before releasing major updates, verify the following core interactions:
+
+- **Mobile "Fresh Quote" Tap:** Ensure the tap area is responsive and does not double-trigger.
+- **Rapid Search Typing:** Type quickly in the command palette; ensure debounce prevents flashing, results order is maintained, and pagination stays smooth.
+- **Offline Fallback:** Disconnect network and verify the app serves the cached quote dataset gracefully without breaking layout.
+- **Drawer Open/Close:** Open search/settings drawers and press `Escape`, click outside, or swipe to dismiss; verify animations and scroll locks behave correctly.
+- **Copy/Share:** Verify the copy to clipboard and native Web Share API (if available) triggers the correct success states.
 
 ## Contributing
 

@@ -1,43 +1,60 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://chronos778.github.io; font-src 'self'; connect-src 'self' https://quotes-api-ruddy.vercel.app; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description"
-        content="Quote.Web is a curated digital space for daily inspiration. distinct, minimal, and focused on the power of words. Powered by the Quotes API.">
-    <meta name="keywords" content="quotes, inspiration, daily quote, minimal, design, typography, developer API">
-    <meta name="author" content="Chronos778">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://chronos778.github.io; font-src 'self'; connect-src 'self' https://quotes-api-ruddy.vercel.app; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Quote.Web is a curated digital space for daily inspiration. distinct, minimal, and focused on the power of words. Powered by the Quotes API."
+    />
+    <meta
+      name="keywords"
+      content="quotes, inspiration, daily quote, minimal, design, typography, developer API"
+    />
+    <meta name="author" content="Chronos778" />
     <meta name="google-site-verification" content="WvpusEFiXCmsFEYt_V7FHeodzg7VpVPjutkTRHwJxXI" />
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://chronos778.github.io/quote.web/">
-    <meta property="og:title" content="Quote.Web — Daily Inspiration">
-    <meta property="og:description"
-        content="A curated digital space for daily inspiration. Minimal, focused, and powerful.">
-    <meta property="og:image" content="https://chronos778.github.io/quote.web/assets/screenshots/desktop.png">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://chronos778.github.io/quote.web/" />
+    <meta property="og:title" content="Quote.Web — Daily Inspiration" />
+    <meta
+      property="og:description"
+      content="A curated digital space for daily inspiration. Minimal, focused, and powerful."
+    />
+    <meta
+      property="og:image"
+      content="https://chronos778.github.io/quote.web/assets/screenshots/desktop.png"
+    />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://chronos778.github.io/quote.web/">
-    <meta property="twitter:title" content="Quote.Web — Daily Inspiration">
-    <meta property="twitter:description"
-        content="A curated digital space for daily inspiration. Minimal, focused, and powerful.">
-    <meta property="twitter:image" content="https://chronos778.github.io/quote.web/assets/screenshots/desktop.png">
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://chronos778.github.io/quote.web/" />
+    <meta property="twitter:title" content="Quote.Web — Daily Inspiration" />
+    <meta
+      property="twitter:description"
+      content="A curated digital space for daily inspiration. Minimal, focused, and powerful."
+    />
+    <meta
+      property="twitter:image"
+      content="https://chronos778.github.io/quote.web/assets/screenshots/desktop.png"
+    />
 
     <title>Quote.Web — Daily Inspiration</title>
 
     <!-- PWA Manifest -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#050505">
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#050505" />
 
     <!-- Apple PWA Support -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Quote.Web">
-    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Quote.Web" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
 
     <!-- Fonts -->
     <!-- Locally hosted in styles.css -->
@@ -46,130 +63,181 @@
     <script src="lucide.min.js" defer></script>
 
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
 
     <!-- Logic -->
     <script src="app.js" defer></script>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <div class="bg-canvas">
-        <canvas id="starfield"></canvas>
+      <canvas id="starfield"></canvas>
     </div>
     <div class="grain"></div>
 
     <!-- Sidebar -->
     <nav class="sidebar">
-        <div class="brand">
-            <div class="brand-logo"></div>
-            <span class="brand-name">Quote.Web</span>
-        </div>
-        <div class="nav-menu" role="navigation" aria-label="Primary navigation">
-            <button type="button" class="nav-item active" data-nav="discover" data-action="nav-discover" aria-label="Discover" aria-current="page">
-                <i data-lucide="layout-grid" class="nav-icon"></i>
-                <span class="nav-label">Discover</span>
-            </button>
-            <button type="button" class="nav-item" data-nav="search" data-action="toggle-search" aria-label="Search" aria-expanded="false" aria-controls="cmd-palette">
-                <i data-lucide="search" class="nav-icon"></i>
-                <span class="nav-label">Search</span>
-                <span class="shortcut-hint">Ctrl K</span>
-            </button>
-            <button type="button" class="nav-item" data-nav="about" data-action="open-drawer" data-drawer="about" aria-label="About">
-                <i data-lucide="info" class="nav-icon"></i>
-                <span class="nav-label">About</span>
-            </button>
-            <button type="button" class="nav-item" data-nav="contact" data-action="open-drawer" data-drawer="contact" aria-label="Contact">
-                <i data-lucide="mail" class="nav-icon"></i>
-                <span class="nav-label">Contact</span>
-            </button>
-        </div>
+      <div class="brand">
+        <div class="brand-logo"></div>
+        <span class="brand-name">Quote.Web</span>
+      </div>
+      <div class="nav-menu" role="navigation" aria-label="Primary navigation">
+        <button
+          type="button"
+          class="nav-item active"
+          data-nav="discover"
+          data-action="nav-discover"
+          aria-label="Discover"
+          aria-current="page"
+        >
+          <i data-lucide="layout-grid" class="nav-icon"></i>
+          <span class="nav-label">Discover</span>
+        </button>
+        <button
+          type="button"
+          class="nav-item"
+          data-nav="search"
+          data-action="toggle-search"
+          aria-label="Search"
+          aria-expanded="false"
+          aria-controls="cmd-palette"
+        >
+          <i data-lucide="search" class="nav-icon"></i>
+          <span class="nav-label">Search</span>
+          <span class="shortcut-hint">Ctrl K</span>
+        </button>
+        <button
+          type="button"
+          class="nav-item"
+          data-nav="about"
+          data-action="open-drawer"
+          data-drawer="about"
+          aria-label="About"
+        >
+          <i data-lucide="info" class="nav-icon"></i>
+          <span class="nav-label">About</span>
+        </button>
+        <button
+          type="button"
+          class="nav-item"
+          data-nav="contact"
+          data-action="open-drawer"
+          data-drawer="contact"
+          aria-label="Contact"
+        >
+          <i data-lucide="mail" class="nav-icon"></i>
+          <span class="nav-label">Contact</span>
+        </button>
+      </div>
     </nav>
 
     <!-- Main Workspace -->
     <main class="workspace">
-        <div class="toolbar">
-            <!-- Future implementation: User profile or settings -->
-        </div>
+      <div class="toolbar">
+        <!-- Future implementation: User profile or settings -->
+      </div>
 
-        <!-- Reader View -->
-        <article class="reader-container">
-            <div class="quote-badge">Loading...</div>
-            <h1 class="quote-display loading" id="quote-text">...</h1>
-            <div class="author-block">
-                <div class="author-line"></div>
-                <span id="quote-author">...</span>
-            </div>
-        </article>
+      <!-- Reader View -->
+      <article class="reader-container">
+        <div class="quote-badge">Loading...</div>
+        <h1 class="quote-display loading" id="quote-text">...</h1>
+        <div class="author-block">
+          <div class="author-line"></div>
+          <span id="quote-author">...</span>
+        </div>
+      </article>
 
-        <!-- Floating Dock -->
-        <div class="dock-trigger">
-            <i data-lucide="chevron-up" class="dock-hint-arrow"></i>
-        </div>
-        <div class="dock">
-            <button type="button" class="dock-btn" data-action="copy-quote" aria-label="Copy Quote">
-                <i data-lucide="copy" size="16"></i>
-            </button>
-            <button type="button" class="dock-btn" data-action="share-quote" aria-label="Share Quote">
-                <i data-lucide="share-2" size="16"></i>
-            </button>
-            <div class="dock-divider"></div>
-            <button type="button" class="dock-btn primary" data-action="fresh-quote" aria-label="Get Fresh Quote">
-                <span>Fresh Quote</span>
-                <i data-lucide="arrow-right" size="16"></i>
-            </button>
-        </div>
+      <!-- Floating Dock -->
+      <div class="dock-trigger">
+        <i data-lucide="chevron-up" class="dock-hint-arrow"></i>
+      </div>
+      <div class="dock">
+        <button type="button" class="dock-btn" data-action="copy-quote" aria-label="Copy Quote">
+          <i data-lucide="copy" size="16"></i>
+        </button>
+        <button type="button" class="dock-btn" data-action="share-quote" aria-label="Share Quote">
+          <i data-lucide="share-2" size="16"></i>
+        </button>
+        <div class="dock-divider"></div>
+        <button
+          type="button"
+          class="dock-btn primary"
+          data-action="fresh-quote"
+          aria-label="Get Fresh Quote"
+        >
+          <span>Fresh Quote</span>
+          <i data-lucide="arrow-right" size="16"></i>
+        </button>
+      </div>
     </main>
 
     <!-- Overlays -->
     <div class="overlay-backdrop" id="backdrop" data-action="close-overlays"></div>
 
     <!-- Command Palette -->
-    <div class="cmd-palette" id="cmd-palette" role="dialog" aria-modal="true" aria-label="Quote search command palette">
-        <div class="cmd-input-wrapper">
-            <i data-lucide="search" size="18" class="cmd-search-icon"></i>
-            <input type="text" class="cmd-input" placeholder="Search quotes..." disabled aria-controls="cmd-results" aria-activedescendant="" role="combobox" aria-autocomplete="list" aria-expanded="false">
-            <span class="cmd-kbd">ESC</span>
-        </div>
-        <div class="cmd-filters">
-            <input type="text" id="cmd-author" class="cmd-filter-input" placeholder="Filter by author">
-            <select id="cmd-sort" class="cmd-filter-select" aria-label="Sort field">
-                <option value="">Relevance</option>
-                <option value="author">Author</option>
-                <option value="text">Quote Text</option>
-            </select>
-            <select id="cmd-order" class="cmd-filter-select" aria-label="Sort order">
-                <option value="desc">Desc</option>
-                <option value="asc">Asc</option>
-            </select>
-            <select id="cmd-limit" class="cmd-filter-select" aria-label="Results per page">
-                <option value="20" selected>20</option>
-                <option value="40">40</option>
-                <option value="60">60</option>
-            </select>
-        </div>
-        <div class="cmd-meta" id="cmd-meta"></div>
-        <div class="cmd-results" id="cmd-results" role="listbox" aria-label="Search results">
-            <!-- Simulated Results -->
-            <button type="button" class="cmd-item selected" data-action="fresh-quote-close" role="option">
-                <span>Fetch new random quote</span>
-                <span class="cmd-kbd">Space</span>
-            </button>
-        </div>
+    <div
+      class="cmd-palette"
+      id="cmd-palette"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Quote search command palette"
+    >
+      <div class="cmd-input-wrapper">
+        <i data-lucide="search" size="18" class="cmd-search-icon"></i>
+        <input
+          type="text"
+          class="cmd-input"
+          placeholder="Search quotes..."
+          disabled
+          aria-controls="cmd-results"
+          aria-activedescendant=""
+          role="combobox"
+          aria-autocomplete="list"
+          aria-expanded="false"
+        />
+        <span class="cmd-kbd">ESC</span>
+      </div>
+      <div class="cmd-filters">
+        <input
+          type="text"
+          id="cmd-author"
+          class="cmd-filter-input"
+          placeholder="Filter by author"
+        />
+        <select id="cmd-sort" class="cmd-filter-select" aria-label="Sort field">
+          <option value="">Relevance</option>
+          <option value="author">Author</option>
+          <option value="text">Quote Text</option>
+        </select>
+        <select id="cmd-order" class="cmd-filter-select" aria-label="Sort order">
+          <option value="desc">Desc</option>
+          <option value="asc">Asc</option>
+        </select>
+        <select id="cmd-limit" class="cmd-filter-select" aria-label="Results per page">
+          <option value="20" selected>20</option>
+          <option value="40">40</option>
+          <option value="60">60</option>
+        </select>
+      </div>
+      <div class="cmd-meta" id="cmd-meta"></div>
+      <div class="cmd-results" id="cmd-results" role="listbox" aria-label="Search results"></div>
     </div>
 
     <!-- Side Drawer -->
     <aside class="drawer" id="side-drawer">
-        <button type="button" class="drawer-close" data-action="close-drawer" aria-label="Close Drawer">
-            <i data-lucide="x" size="24"></i>
-        </button>
-        <div class="drawer-content" id="drawer-body">
-            <!-- Content Injected via JS -->
-        </div>
+      <button
+        type="button"
+        class="drawer-close"
+        data-action="close-drawer"
+        aria-label="Close Drawer"
+      >
+        <i data-lucide="x" size="24"></i>
+      </button>
+      <div class="drawer-content" id="drawer-body">
+        <!-- Content Injected via JS -->
+      </div>
     </aside>
 
     <div class="toast" id="toast">Copied to clipboard</div>
-
-</body>
-
+  </body>
 </html>

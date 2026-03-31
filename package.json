@@ -1,0 +1,30 @@
+{
+  "name": "quote.web",
+  "version": "2.3.0",
+  "description": "A modern, dark-themed Progressive Web App (PWA) for daily inspiration. Browse random quotes with a premium UI, search the collection, and enjoy a fully offline-capable experience.",
+  "main": "app.js",
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chronos778/quote.web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Chronos778/quote.web/issues"
+  },
+  "homepage": "https://github.com/Chronos778/quote.web#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.1.0",
+    "globals": "^17.4.0",
+    "prettier": "^3.8.1"
+  }
+}
