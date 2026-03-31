@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quote-web-v2';
+const CACHE_NAME = 'quote-web-v3';
 const ASSETS = [
     './',
     './index.html',
@@ -6,6 +6,7 @@ const ASSETS = [
     './app.js',
     './manifest.json',
     './lucide.min.js',
+    './assets/data/offline-quotes.json',
     './assets/icons/icon-192.png',
     './assets/icons/icon-512.png',
     './assets/screenshots/desktop.png',
@@ -29,14 +30,45 @@ self.addEventListener('install', (e) => {
 self.addEventListener('fetch', (e) => {
     // API Strategy: Network Only (Let app.js handle failures with offline quotes)
     if (e.request.url.includes('quotes-api-ruddy.vercel.app')) {
-        e.respondWith(fetch(e.request));
+        e.respondWith(
+            fetch(e.request).catch(() => new Response(null, { status: 503, statusText: 'Offline' }))
+        );
         return;
     }
 
-    // Static Assets Strategy: Cache First, Fallback to Network
+    if (e.request.method !== 'GET') {
+        return;
+    }
+
+    // Static Assets Strategy: Stale-While-Revalidate
     e.respondWith(
-        caches.match(e.request).then((response) => {
-            return response || fetch(e.request);
+        caches.match(e.request).then((cachedResponse) => {
+            const networkFetch = fetch(e.request)
+                .then((networkResponse) => {
+                    if (!networkResponse || networkResponse.status !== 200) {
+                        return networkResponse;
+                    }
+
+                    const cloned = networkResponse.clone();
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(e.request, cloned);
+                    });
+
+                    return networkResponse;
+                })
+                .catch(() => {
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+
+                    if (e.request.mode === 'navigate') {
+                        return caches.match('./index.html');
+                    }
+
+                    return new Response('Offline', { status: 503, statusText: 'Offline' });
+                });
+
+            return cachedResponse || networkFetch;
         })
     );
 });

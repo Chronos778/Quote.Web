@@ -4,6 +4,9 @@ class Starfield {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.stars = [];
+        this.rafId = null;
+        this.isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.isPageVisible = !document.hidden;
         this.width = window.innerWidth;
         this.height = window.innerHeight;
         this.init();
@@ -12,20 +15,36 @@ class Starfield {
     init() {
         this.resize();
         window.addEventListener('resize', () => this.resize());
+        document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
         this.createStars();
-        this.animate();
+
+        if (this.isReducedMotion) {
+            this.drawStaticFrame();
+            return;
+        }
+
+        this.start();
     }
 
     resize() {
         this.width = window.innerWidth;
         this.height = window.innerHeight;
-        this.canvas.width = this.width;
-        this.canvas.height = this.height;
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        this.canvas.width = Math.floor(this.width * dpr);
+        this.canvas.height = Math.floor(this.height * dpr);
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        this.createStars();
+
+        if (this.isReducedMotion) {
+            this.drawStaticFrame();
+        }
     }
 
     createStars() {
         this.stars = [];
-        const count = this.width < 768 ? 100 : 400; // Adjust count based on screen size
+        const count = this.width < 768 ? 80 : 220;
 
         for (let i = 0; i < count; i++) {
             this.stars.push({
@@ -38,7 +57,50 @@ class Starfield {
         }
     }
 
+    drawStaticFrame() {
+        this.ctx.clearRect(0, 0, this.width, this.height);
+        this.ctx.fillStyle = 'white';
+
+        this.stars.forEach(star => {
+            this.ctx.globalAlpha = star.opacity;
+            this.ctx.beginPath();
+            this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+
+        this.ctx.globalAlpha = 1;
+    }
+
+    handleVisibilityChange() {
+        this.isPageVisible = !document.hidden;
+        if (this.isReducedMotion) {
+            return;
+        }
+
+        if (this.isPageVisible) {
+            this.start();
+        } else {
+            this.stop();
+        }
+    }
+
+    start() {
+        if (this.rafId !== null) return;
+        this.animate();
+    }
+
+    stop() {
+        if (this.rafId === null) return;
+        cancelAnimationFrame(this.rafId);
+        this.rafId = null;
+    }
+
     animate() {
+        if (!this.isPageVisible || this.isReducedMotion) {
+            this.rafId = null;
+            return;
+        }
+
         this.ctx.clearRect(0, 0, this.width, this.height);
         this.ctx.fillStyle = "white";
 
@@ -58,18 +120,23 @@ class Starfield {
             }
         });
 
-        requestAnimationFrame(() => this.animate());
+        this.ctx.globalAlpha = 1;
+        this.rafId = requestAnimationFrame(() => this.animate());
     }
 }
 
 // --- Application State & Logic ---
 
 const API_BASE = "https://quotes-api-ruddy.vercel.app";
+const OFFLINE_QUOTES_PATH = './assets/data/offline-quotes.json';
 const SEARCH_PAGE_SIZE = 20;
 const MAX_RATE_LIMIT_RETRIES = 2;
 const SEARCH_LIMIT_OPTIONS = [20, 40, 60];
 let searchTimeout;
 let activeSearchRequestId = 0;
+let offlineQuoteCache = null;
+let selectedSearchIndex = -1;
+let lastFocusedElementBeforeOverlay = null;
 
 const searchState = {
     query: '',
@@ -198,7 +265,7 @@ const content = {
         <div class="drawer-header"><h2 class="drawer-title">Contact</h2></div>
         <p>Have a suggestion or found a bug? I'd love to hear from you.</p>
         <p>Email: <a href="mailto:maithilpatil9@gmail.com">maithilpatil9@gmail.com</a></p>
-        <p>GitHub: <a href="https://github.com/Chronos778" target="_blank">Chronos778</a></p>
+        <p>GitHub: <a href="https://github.com/Chronos778" target="_blank" rel="noopener noreferrer">Chronos778</a></p>
     `
 };
 
@@ -223,7 +290,7 @@ async function fetchQOD() {
         console.error("Failed to fetch QOD", error);
 
         if (error instanceof ApiError && error.status === 429) {
-            renderOfflineQuote('Rate limited · Offline');
+            await renderOfflineQuote('Rate limited · Offline');
             return;
         }
 
@@ -232,105 +299,48 @@ async function fetchQOD() {
 }
 
 // Fallback quotes for offline usage
-const offlineQuotes = [
+const fallbackOfflineQuotes = [
     { text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" },
     { text: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
     { text: "The best way to predict the future is to create it.", author: "Peter Drucker" },
-    { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
-    { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
-    { text: "Everything you've ever wanted is on the other side of fear.", author: "George Addair" },
-    { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", author: "Winston Churchill" },
-    { text: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
     { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
-    { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
-    { text: "I have not failed. I've just found 10,000 ways that won't work.", author: "Thomas Edison" },
-    { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
-    { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
-    { text: "Keep your face always toward the sunshine—and shadows will fall behind you.", author: "Walt Whitman" },
-    { text: "The power of imagination makes us infinite.", author: "John Muir" },
-    { text: "Try to be a rainbow in someone's cloud.", author: "Maya Angelou" },
-    { text: "We generate fears while we sit. We overcome them by action.", author: "Dr. Henry Link" },
-    { text: "Dream big and dare to fail.", author: "Norman Vaughan" },
-    { text: "Act as if what you do makes a difference. It does.", author: "William James" },
-    { text: "Success usually comes to those who are too busy to be looking for it.", author: "Henry David Thoreau" },
-    { text: "Don't be pushed around by the fears in your mind. Be led by the dreams in your heart.", author: "Roy T. Bennett" },
-    { text: "It's not whether you get knocked down, it's whether you get up.", author: "Vince Lombardi" },
-    { text: "If you want to live a happy life, tie it to a goal, not to people or things.", author: "Albert Einstein" },
-    { text: "Never let the fear of striking out keep you from playing the game.", author: "Babe Ruth" },
-    { text: "Money and success don’t change people; they merely amplify what is already there.", author: "Will Smith" },
-    { text: "Your time is limited, so don't waste it living someone else's life.", author: "Steve Jobs" },
-    { text: "Not how long, but how well you have lived is the main thing.", author: "Seneca" },
-    { text: "If life were predictable it would cease to be life, and be without flavor.", author: "Eleanor Roosevelt" },
-    { text: "The whole secret of a successful life is to find out what is one's destiny to do, and then do it.", author: "Henry Ford" },
-    { text: "In order to write about life first you must live it.", author: "Ernest Hemingway" },
-    { text: "Life is not a problem to be solved, but a reality to be experienced.", author: "Søren Kierkegaard" },
-    { text: "The unexamined life is not worth living.", author: "Socrates" },
-    { text: "Turn your wounds into wisdom.", author: "Oprah Winfrey" },
-    { text: "The purpose of our lives is to be happy.", author: "Dalai Lama" },
-    { text: "Live for each second without hesitation.", author: "Elton John" },
-    { text: "Life is ten percent what happens to you and ninety percent how you respond to it.", author: "Charles Swindoll" },
-    { text: "Keep calm and carry on.", author: "Winston Churchill" },
-    { text: "Maybe that’s what life is... a wink of the eye and winking stars.", author: "Jack Kerouac" },
-    { text: "Life is a flower of which love is the honey.", author: "Victor Hugo" },
-    { text: "Health is the greatest gift, contentment the greatest wealth, faithfulness the best relationship.", author: "Buddha" },
-    { text: "The brain is wider than the sky.", author: "Emily Dickinson" },
+    { text: "Success is not final, failure is not fatal: It is the courage to continue that counts.", author: "Winston Churchill" },
     { text: "Great things are done by a series of small things brought together.", author: "Vincent Van Gogh" },
-    { text: "Education is the most powerful weapon which you can use to change the world.", author: "Nelson Mandela" },
-    { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
-    { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
-    { text: "When something is important enough, you do it even if the odds are not in your favor.", author: "Elon Musk" },
-    { text: "If you're going through hell, keep going.", author: "Winston Churchill" },
-    { text: "Quality is not an act, it is a habit.", author: "Aristotle" },
-    { text: "Good judgment comes from experience, and a lot of that comes from bad judgment.", author: "Will Rogers" },
-    { text: "Think of all the beauty still left around you and be happy.", author: "Anne Frank" },
-    { text: "We may encounter many defeats but we must not be defeated.", author: "Maya Angelou" },
-    { text: "Life is really simple, but we insist on making it complicated.", author: "Confucius" },
-    { text: "Change the world by being yourself.", author: "Amy Poehler" },
-    { text: "Every moment is a fresh beginning.", author: "T.S. Eliot" },
-    { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci" },
-    { text: "Whatever you do, do it well.", author: "Walt Disney" },
-    { text: "What we think, we become.", author: "Buddha" },
-    { text: "All limitations are self-imposed.", author: "Oliver Wendell Holmes" },
-    { text: "Tough times never last but tough people do.", author: "Robert H. Schuller" },
-    { text: "Problems are not stop signs, they are guidelines.", author: "Robert H. Schuller" },
-    { text: "One day the people that don’t even believe in you will tell everyone how they met you.", author: "Johnny Depp" },
-    { text: "If I tell you I'm good, probably you will say I'm boasting. But if I tell you I'm not good, you'll know I'm lying.", author: "Bruce Lee" },
-    { text: "Have no fear of perfection, you'll never reach it.", author: "Salvador Dali" },
-    { text: "Determined to never be idle. No person will have occasion to complain of the want of time who never loses any.", author: "Thomas Jefferson" },
-    { text: "The two most important days in your life are the day you are born and the day you find out why.", author: "Mark Twain" },
-    { text: "Nothing is impossible, the word itself says 'I'm possible'!", author: "Audrey Hepburn" },
-    { text: "Don't count the days, make the days count.", author: "Muhammad Ali" },
-    { text: "Light tomorrow with today.", author: "Elizabeth Barrett Browning" },
-    { text: "Sadness flies away on the wings of time.", author: "Jean de La Fontaine" },
-    { text: "I enjoy life when things are happening. I don't care if it's good things or bad things. That means you're alive.", author: "Joan Rivers" },
-    { text: "Life is short, and it is up to you to make it sweet.", author: "Sarah Louise Delany" },
-    { text: "It is never too late to be what you might have been.", author: "George Eliot" },
-    { text: "To live is the rarest thing in the world. Most people exist, that is all.", author: "Oscar Wilde" },
-    { text: "Pain is inevitable. Suffering is optional.", author: "Haruki Murakami" },
-    { text: "Be kind, for everyone you meet is fighting a hard battle.", author: "Plato" },
-    { text: "We are all in the gutter, but some of us are looking at the stars.", author: "Oscar Wilde" },
-    { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-    { text: "If you tell the truth, you don't have to remember anything.", author: "Mark Twain" },
-    { text: "A friend is someone who knows all about you and still loves you.", author: "Elbert Hubbard" },
-    { text: "To survive it is often necessary to fight and to fight you have to dirty yourself.", author: "George Orwell" },
-    { text: "Knowing yourself is the beginning of all wisdom.", author: "Aristotle" },
     { text: "No one can make you feel inferior without your consent.", author: "Eleanor Roosevelt" },
-    { text: "Be the change that you wish to see in the world.", author: "Mahatma Gandhi" },
-    { text: "If you cannot do great things, do small things in a great way.", author: "Napoleon Hill" },
-    { text: "If opportunity doesn't knock, build a door.", author: "Milton Berle" },
-    { text: "Wise men speak because they have something to say; fools because they have to say something.", author: "Plato" },
-    { text: "Strive not to be a success, but rather to be of value.", author: "Albert Einstein" },
-    { text: "Two roads diverged in a wood, and I—I took the one less traveled by, And that has made all the difference.", author: "Robert Frost" },
-    { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", author: "Ralph Waldo Emerson" },
-    { text: "Be yourself; everyone else is already taken.", author: "Oscar Wilde" },
-    { text: "We don't need to be smarter than the rest. We have to be more disciplined than the rest.", author: "Warren Buffett" },
-    { text: "Creativity is intelligence having fun.", author: "Albert Einstein" },
-    { text: "There is no substitute for hard work.", author: "Thomas Edison" },
-    { text: "Excellence is not a skill. It is an attitude.", author: "Ralph Marston" },
-    { text: "Your time is limited, so don't waste it living someone else's life.", author: "Steve Jobs" },
-    { text: "The journey of a thousand miles begins with one step.", author: "Lao Tzu" },
-    { text: "What we achieve inwardly will change outer reality.", author: "Plutarch" }
+    { text: "Creativity is intelligence having fun.", author: "Albert Einstein" }
 ];
+
+async function getOfflineQuotesPool() {
+    if (Array.isArray(offlineQuoteCache) && offlineQuoteCache.length > 0) {
+        return offlineQuoteCache;
+    }
+
+    try {
+        const response = await fetch(OFFLINE_QUOTES_PATH, { cache: 'force-cache' });
+        if (!response.ok) {
+            throw new Error(`Offline quote file unavailable (${response.status})`);
+        }
+
+        const payload = await response.json();
+        if (!Array.isArray(payload)) {
+            throw new Error('Offline quote file has invalid shape');
+        }
+
+        const normalized = payload
+            .map(normalizeQuote)
+            .filter(Boolean);
+
+        if (normalized.length > 0) {
+            offlineQuoteCache = normalized;
+            return normalized;
+        }
+    } catch (error) {
+        console.warn('Falling back to in-bundle offline quotes', error);
+    }
+
+    offlineQuoteCache = fallbackOfflineQuotes;
+    return fallbackOfflineQuotes;
+}
 
 async function fetchNewQuote() {
     ui.text.classList.add('loading');
@@ -349,16 +359,20 @@ async function fetchNewQuote() {
     } catch (error) {
         console.warn("Using offline quote due to:", error.message);
         if (error instanceof ApiError && error.status === 429) {
-            renderOfflineQuote('Rate limited · Offline');
+            await renderOfflineQuote('Rate limited · Offline');
             return;
         }
 
-        renderOfflineQuote('Offline Inspiration');
+        await renderOfflineQuote('Offline Inspiration');
     }
 }
 
-function renderOfflineQuote(label = 'Offline Inspiration') {
-    const randomQuote = offlineQuotes[Math.floor(Math.random() * offlineQuotes.length)];
+async function renderOfflineQuote(label = 'Offline Inspiration') {
+    const pool = await getOfflineQuotesPool();
+    const randomQuote = pool[Math.floor(Math.random() * pool.length)] || {
+        text: 'Stay curious and keep building.',
+        author: 'Quote.Web'
+    };
     renderQuote(randomQuote);
     if (ui.badge) ui.badge.innerText = label;
 }
@@ -385,25 +399,68 @@ function renderQuote(data) {
     }, 300);
 }
 
-function copyQuote() {
+async function copyQuote() {
     const textToCopy = ui.text.innerText + " — " + ui.author.innerText;
-    navigator.clipboard.writeText(textToCopy);
-    showToast();
-}
 
-function shareQuote() {
-    if (navigator.share) {
-        navigator.share({
-            title: 'Daily Inspiration',
-            text: ui.text.innerText + " — " + ui.author.innerText,
-            url: window.location.href
-        }).catch(console.error);
-    } else {
-        copyQuote();
+    try {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(textToCopy);
+            showToast('Copied to clipboard');
+            return true;
+        }
+
+        const fallbackInput = document.createElement('textarea');
+        fallbackInput.value = textToCopy;
+        fallbackInput.setAttribute('readonly', 'true');
+        fallbackInput.style.position = 'fixed';
+        fallbackInput.style.opacity = '0';
+        document.body.appendChild(fallbackInput);
+        fallbackInput.select();
+
+        const success = document.execCommand('copy');
+        document.body.removeChild(fallbackInput);
+
+        if (!success) {
+            throw new Error('Clipboard command was rejected');
+        }
+
+        showToast('Copied to clipboard');
+        return true;
+    } catch (error) {
+        console.error('Copy failed', error);
+        showToast('Copy failed');
+        return false;
     }
 }
 
-function showToast() {
+async function shareQuote() {
+    const payload = {
+        title: 'Daily Inspiration',
+        text: ui.text.innerText + " — " + ui.author.innerText,
+        url: window.location.href
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(payload);
+            showToast('Shared');
+            return;
+        } catch (error) {
+            if (error?.name === 'AbortError') {
+                return;
+            }
+            console.error('Share failed', error);
+            showToast('Share failed, copied instead');
+            await copyQuote();
+            return;
+        }
+    }
+
+    await copyQuote();
+}
+
+function showToast(message = 'Copied to clipboard') {
+    ui.toast.textContent = message;
     ui.toast.classList.add('show');
     setTimeout(() => ui.toast.classList.remove('show'), 2000);
 }
@@ -418,6 +475,46 @@ function resetSearchState(query = '') {
     searchState.results = [];
     searchState.total = null;
     searchState.filters = getSearchFiltersFromUI();
+}
+
+function setSelectedSearchIndex(index) {
+    const items = ui.cmdResults.querySelectorAll('.cmd-item[role="option"]');
+
+    if (items.length === 0) {
+        selectedSearchIndex = -1;
+        ui.cmdInput.setAttribute('aria-activedescendant', '');
+        return;
+    }
+
+    if (index < 0) {
+        selectedSearchIndex = -1;
+    } else {
+        selectedSearchIndex = Math.min(index, items.length - 1);
+    }
+
+    items.forEach((item, itemIndex) => {
+        const isSelected = itemIndex === selectedSearchIndex;
+        item.classList.toggle('selected', isSelected);
+        item.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+
+        if (isSelected) {
+            item.scrollIntoView({ block: 'nearest' });
+            ui.cmdInput.setAttribute('aria-activedescendant', item.id || '');
+        }
+    });
+
+    if (selectedSearchIndex < 0) {
+        ui.cmdInput.setAttribute('aria-activedescendant', '');
+    }
+}
+
+function markPaletteExpanded(isExpanded) {
+    const searchNav = document.querySelector('.nav-item[data-nav="search"]');
+    if (searchNav) {
+        searchNav.setAttribute('aria-expanded', String(isExpanded));
+    }
+
+    ui.cmdInput.setAttribute('aria-expanded', String(isExpanded));
 }
 
 function getSearchFiltersFromUI() {
@@ -662,6 +759,7 @@ function handleSearch() {
     if (!isSearchInputActive()) {
         activeSearchRequestId++;
         resetSearchState(query);
+        selectedSearchIndex = -1;
         renderSearchResults([]);
         return;
     }
@@ -673,38 +771,51 @@ function handleSearch() {
 
 function renderSearchResults(results, { isLoading = false, canLoadMore = false, errorMessage = '' } = {}) {
     ui.cmdResults.innerHTML = '';
+    selectedSearchIndex = -1;
     const hasActiveQuery = isSearchInputActive();
 
     updateSearchMeta(results.length, { isLoading, errorMessage });
 
     if (errorMessage && results.length === 0) {
-        ui.cmdResults.innerHTML = `<div class="cmd-item cmd-item-muted">${errorMessage}</div>`;
+        ui.cmdResults.innerHTML = `<div class="cmd-item cmd-item-muted" role="status" aria-live="polite">${errorMessage}</div>`;
         return;
     }
 
     if (results.length === 0 && hasActiveQuery && isLoading) {
-        ui.cmdResults.innerHTML = '<div class="cmd-item cmd-item-muted">Searching...</div>';
+        ui.cmdResults.innerHTML = '<div class="cmd-item cmd-item-muted" role="status" aria-live="polite">Searching...</div>';
         return;
     }
 
     if (results.length === 0 && hasActiveQuery) {
-        ui.cmdResults.innerHTML = '<div class="cmd-item cmd-item-muted">No matches found.</div>';
+        ui.cmdResults.innerHTML = '<div class="cmd-item cmd-item-muted" role="status" aria-live="polite">No matches found.</div>';
         return;
     }
 
     if (results.length === 0) {
-        ui.cmdResults.innerHTML = `
-            <div class="cmd-item selected" onclick="fetchNewQuote(); closeAllOverlays()">
-                <span>Fetch new random quote</span>
-                <span class="cmd-kbd">Space</span>
-            </div>
+        const fallbackAction = document.createElement('button');
+        fallbackAction.type = 'button';
+        fallbackAction.className = 'cmd-item';
+        fallbackAction.id = 'cmd-item-fallback-action';
+        fallbackAction.setAttribute('role', 'option');
+        fallbackAction.innerHTML = `
+            <span>Fetch new random quote</span>
+            <span class="cmd-kbd">Space</span>
         `;
+        fallbackAction.onclick = async () => {
+            await fetchNewQuote();
+            closeAllOverlays();
+        };
+        ui.cmdResults.appendChild(fallbackAction);
+        setSelectedSearchIndex(0);
         return;
     }
 
-    results.forEach(quote => {
-        const div = document.createElement('div');
-        div.className = 'cmd-item';
+    results.forEach((quote, index) => {
+        const resultButton = document.createElement('button');
+        resultButton.type = 'button';
+        resultButton.className = 'cmd-item';
+        resultButton.id = `cmd-item-result-${index}`;
+        resultButton.setAttribute('role', 'option');
 
         const content = document.createElement('div');
         content.className = 'cmd-result-content';
@@ -719,19 +830,23 @@ function renderSearchResults(results, { isLoading = false, canLoadMore = false, 
 
         content.appendChild(text);
         content.appendChild(author);
-        div.appendChild(content);
+        resultButton.appendChild(content);
 
-        div.onclick = () => {
+        resultButton.onclick = () => {
             renderQuote(quote);
             closeAllOverlays();
             if (ui.badge) ui.badge.innerText = "Search Result";
         };
-        ui.cmdResults.appendChild(div);
+
+        ui.cmdResults.appendChild(resultButton);
     });
 
     if (canLoadMore) {
-        const loadMore = document.createElement('div');
+        const loadMore = document.createElement('button');
+        loadMore.type = 'button';
         loadMore.className = 'cmd-item is-load-more';
+        loadMore.id = `cmd-item-load-more-${searchState.page}`;
+        loadMore.setAttribute('role', 'option');
         loadMore.innerHTML = `
             <span>Load more results</span>
             <span class="cmd-kbd">Enter</span>
@@ -743,6 +858,8 @@ function renderSearchResults(results, { isLoading = false, canLoadMore = false, 
     if (isLoading) {
         const loading = document.createElement('div');
         loading.className = 'cmd-item cmd-item-muted';
+        loading.setAttribute('role', 'status');
+        loading.setAttribute('aria-live', 'polite');
         loading.textContent = 'Loading more...';
         ui.cmdResults.appendChild(loading);
     }
@@ -750,20 +867,40 @@ function renderSearchResults(results, { isLoading = false, canLoadMore = false, 
     if (errorMessage) {
         const errorHint = document.createElement('div');
         errorHint.className = 'cmd-item cmd-item-muted';
+        errorHint.setAttribute('role', 'status');
+        errorHint.setAttribute('aria-live', 'polite');
         errorHint.textContent = errorMessage;
         ui.cmdResults.appendChild(errorHint);
     }
+
+    setSelectedSearchIndex(results.length > 0 ? 0 : -1);
 }
 
 // --- UI Management ---
+
+function setActiveNav(navKey = 'discover') {
+    const navItems = document.querySelectorAll('.nav-item[data-nav]');
+    navItems.forEach((item) => {
+        const isActive = item.getAttribute('data-nav') === navKey;
+        item.classList.toggle('active', isActive);
+        if (isActive) {
+            item.setAttribute('aria-current', 'page');
+        } else {
+            item.removeAttribute('aria-current');
+        }
+    });
+}
 
 function toggleCommandPalette() {
     const isActive = ui.palette.classList.contains('active');
     if (isActive) {
         closeAllOverlays();
     } else {
+        lastFocusedElementBeforeOverlay = document.activeElement;
+        setActiveNav('search');
         ui.backdrop.classList.add('active');
         ui.palette.classList.add('active');
+        markPaletteExpanded(true);
 
         ui.cmdInput.disabled = false;
         ui.cmdInput.focus();
@@ -777,6 +914,7 @@ function toggleCommandPalette() {
 
 function openDrawer(type) {
     closeAllOverlays();
+    setActiveNav(type);
     ui.drawerBody.innerHTML = content[type];
     ui.backdrop.classList.add('active');
     ui.drawer.classList.add('active');
@@ -785,12 +923,31 @@ function openDrawer(type) {
 function closeDrawer() {
     ui.drawer.classList.remove('active');
     ui.backdrop.classList.remove('active');
+    setActiveNav('discover');
 }
 
 function closeAllOverlays(keepBackdrop = false) {
+    const paletteWasOpen = ui.palette.classList.contains('active');
+
     ui.palette.classList.remove('active');
     ui.drawer.classList.remove('active');
     if (!keepBackdrop) ui.backdrop.classList.remove('active');
+
+    ui.cmdInput.disabled = true;
+    markPaletteExpanded(false);
+
+    if (!keepBackdrop) {
+        setActiveNav('discover');
+    }
+
+    if (paletteWasOpen && lastFocusedElementBeforeOverlay instanceof HTMLElement) {
+        lastFocusedElementBeforeOverlay.focus();
+    }
+
+    if (!keepBackdrop) {
+        selectedSearchIndex = -1;
+        ui.cmdInput.setAttribute('aria-activedescendant', '');
+    }
 }
 
 // --- Initialization ---
@@ -805,6 +962,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Starfield
     new Starfield('starfield');
+    setActiveNav('discover');
 
     // Event Listeners
     document.addEventListener('keydown', (e) => {
@@ -815,36 +973,43 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') closeAllOverlays();
     });
 
-    let selectedIndex = -1;
-
-    function updateSelection() {
-        const items = ui.cmdResults.querySelectorAll('.cmd-item');
-        items.forEach((item, index) => {
-            if (index === selectedIndex) {
-                item.classList.add('selected');
-                item.scrollIntoView({ block: 'nearest' });
-            } else {
-                item.classList.remove('selected');
-            }
-        });
-    }
-
     ui.cmdInput.addEventListener('keydown', (e) => {
-        const items = ui.cmdResults.querySelectorAll('.cmd-item');
+        const items = ui.cmdResults.querySelectorAll('.cmd-item[role="option"]');
         if (items.length === 0) return;
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            selectedIndex = (selectedIndex + 1) % items.length;
-            updateSelection();
+            const nextIndex = selectedSearchIndex < 0 ? 0 : (selectedSearchIndex + 1) % items.length;
+            setSelectedSearchIndex(nextIndex);
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            selectedIndex = (selectedIndex - 1 + items.length) % items.length;
-            updateSelection();
+            const prevIndex = selectedSearchIndex < 0 ? items.length - 1 : (selectedSearchIndex - 1 + items.length) % items.length;
+            setSelectedSearchIndex(prevIndex);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            setSelectedSearchIndex(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            setSelectedSearchIndex(items.length - 1);
+        } else if (e.key === 'PageDown') {
+            e.preventDefault();
+            const nextPageIndex = selectedSearchIndex < 0 ? 0 : Math.min(selectedSearchIndex + 5, items.length - 1);
+            setSelectedSearchIndex(nextPageIndex);
+        } else if (e.key === 'PageUp') {
+            e.preventDefault();
+            const prevPageIndex = selectedSearchIndex < 0 ? 0 : Math.max(selectedSearchIndex - 5, 0);
+            setSelectedSearchIndex(prevPageIndex);
+        } else if (e.key === ' ') {
+            if (selectedSearchIndex < 0 && !isSearchInputActive()) {
+                e.preventDefault();
+                if (items[0]) {
+                    items[0].click();
+                }
+            }
         } else if (e.key === 'Enter') {
             e.preventDefault();
-            if (selectedIndex >= 0 && items[selectedIndex]) {
-                items[selectedIndex].click();
+            if (selectedSearchIndex >= 0 && items[selectedSearchIndex]) {
+                items[selectedSearchIndex].click();
             } else if (items[0]) {
                 items[0].click();
             }
@@ -852,27 +1017,27 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     ui.cmdInput.addEventListener('input', (e) => {
-        selectedIndex = -1; // Reset selection on typing
+        selectedSearchIndex = -1;
         handleSearch();
     });
 
     if (ui.cmdAuthor) {
         ui.cmdAuthor.addEventListener('input', () => {
-            selectedIndex = -1;
+            selectedSearchIndex = -1;
             handleSearch();
         });
     }
 
     if (ui.cmdSort) {
         ui.cmdSort.addEventListener('change', () => {
-            selectedIndex = -1;
+            selectedSearchIndex = -1;
             handleSearch();
         });
     }
 
     if (ui.cmdOrder) {
         ui.cmdOrder.addEventListener('change', () => {
-            selectedIndex = -1;
+            selectedSearchIndex = -1;
             handleSearch();
         });
     }
@@ -880,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ui.cmdLimit) {
         ui.cmdLimit.value = String(SEARCH_PAGE_SIZE);
         ui.cmdLimit.addEventListener('change', () => {
-            selectedIndex = -1;
+            selectedSearchIndex = -1;
             handleSearch();
         });
     }
@@ -890,3 +1055,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial Fetch
     fetchQOD();
 });
+

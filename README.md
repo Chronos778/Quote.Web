@@ -5,13 +5,13 @@ A modern, dark-themed Progressive Web App (PWA) for daily inspiration. Browse ra
 ## Features
 
 - **Progressive Web App** — Installable on any device with native-like experience
-- **Offline Support** — Works without internet (icons, fonts, and 100 fallback quotes)
+- **Offline Support** — Works without internet (icons, fonts, and cached offline quote dataset)
 - **Immersive Reader** — Distraction-free interface with expressive typography
 - **Command Palette** — Instant quote discovery with text search, author filter, sort/order, and load-more pagination (`Ctrl+K`)
 - **API-Ready UX** — Handles rate limits (`429`) with retry/backoff and graceful offline fallback
 - **Dark Theme** — Premium aesthetic with animated starfield background
 - **Mobile Optimized** — Adaptive layout with safe-area support for all devices
-- **Performance First** — Deferred scripts, self-hosted fonts, 60fps canvas animations
+- **Performance First** — Deferred scripts, self-hosted fonts, reduced-motion support, visibility-aware canvas animation
 
 ## Quick Start
 
@@ -59,7 +59,7 @@ Quote.Web fetches data from the [Quotes API](https://quotes-api-ruddy.vercel.app
 | `/quotes?...`          | Paginated listing + text/author filters  |
 | `/quotes/search?...`   | Legacy search fallback compatibility     |
 
-When offline, the app serves from a library of 100 built-in quotes.
+When offline, the app serves quotes from a cached JSON dataset at assets/data/offline-quotes.json, with a small in-bundle emergency fallback.
 
 Search requests use `q`, `page`, `limit`, `author`, `sort`, and `order` when available.
 The command palette includes author filtering, sort/order selectors, and page-size selection (20/40/60), with "Load more" support for paginated results.
