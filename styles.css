@@ -308,25 +308,6 @@ canvas#starfield {
     gap: 12px;
 }
 
-.tool-btn {
-    background: transparent;
-    border: 1px solid var(--border-dim);
-    color: var(--text-muted);
-    padding: 10px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.tool-btn:hover {
-    border-color: var(--text-muted);
-    color: var(--text-main);
-    background: var(--border-dim);
-}
-
 /* Reader View */
 .reader-container {
     max-width: 800px;
@@ -925,6 +906,7 @@ body:has(.dock:hover) .dock-hint-arrow {
         /* Force center on mobile */
         z-index: 60;
         opacity: 1;
+        pointer-events: auto;
         transition: none;
         /* Disable hover float on touch */
     }

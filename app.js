@@ -137,6 +137,8 @@ let activeSearchRequestId = 0;
 let offlineQuoteCache = null;
 let selectedSearchIndex = -1;
 let lastFocusedElementBeforeOverlay = null;
+let activeQuoteRequestId = 0;
+let toastTimeoutId = null;
 
 const searchState = {
     query: '',
@@ -272,6 +274,8 @@ const content = {
 // --- Core functions ---
 
 async function fetchQOD() {
+    const requestId = ++activeQuoteRequestId;
+
     ui.text.classList.add('loading');
     ui.author.parentElement.classList.add('loading');
     if (ui.badge) ui.badge.innerText = "Quote of the Day";
@@ -281,19 +285,22 @@ async function fetchQOD() {
         const quote = normalizeQuote(json?.data);
 
         if (json?.success && quote) {
+            if (requestId !== activeQuoteRequestId) return;
             renderQuote(quote);
             return;
         }
 
+        if (requestId !== activeQuoteRequestId) return;
         await fetchNewQuote();
     } catch (error) {
         console.error("Failed to fetch QOD", error);
 
         if (error instanceof ApiError && error.status === 429) {
-            await renderOfflineQuote('Rate limited · Offline');
+            await renderOfflineQuote('Rate limited · Offline', requestId);
             return;
         }
 
+        if (requestId !== activeQuoteRequestId) return;
         await fetchNewQuote();
     }
 }
@@ -343,6 +350,8 @@ async function getOfflineQuotesPool() {
 }
 
 async function fetchNewQuote() {
+    const requestId = ++activeQuoteRequestId;
+
     ui.text.classList.add('loading');
     ui.author.parentElement.classList.add('loading');
     if (ui.badge) ui.badge.innerText = "Random Inspiration";
@@ -355,20 +364,23 @@ async function fetchNewQuote() {
             throw new Error('Unexpected API payload');
         }
 
+        if (requestId !== activeQuoteRequestId) return;
         renderQuote(quote);
     } catch (error) {
         console.warn("Using offline quote due to:", error.message);
         if (error instanceof ApiError && error.status === 429) {
-            await renderOfflineQuote('Rate limited · Offline');
+            await renderOfflineQuote('Rate limited · Offline', requestId);
             return;
         }
 
-        await renderOfflineQuote('Offline Inspiration');
+        await renderOfflineQuote('Offline Inspiration', requestId);
     }
 }
 
-async function renderOfflineQuote(label = 'Offline Inspiration') {
+async function renderOfflineQuote(label = 'Offline Inspiration', requestId = activeQuoteRequestId) {
     const pool = await getOfflineQuotesPool();
+    if (requestId !== activeQuoteRequestId) return;
+
     const randomQuote = pool[Math.floor(Math.random() * pool.length)] || {
         text: 'Stay curious and keep building.',
         author: 'Quote.Web'
@@ -460,9 +472,16 @@ async function shareQuote() {
 }
 
 function showToast(message = 'Copied to clipboard') {
+    if (toastTimeoutId !== null) {
+        clearTimeout(toastTimeoutId);
+    }
+
     ui.toast.textContent = message;
     ui.toast.classList.add('show');
-    setTimeout(() => ui.toast.classList.remove('show'), 2000);
+    toastTimeoutId = setTimeout(() => {
+        ui.toast.classList.remove('show');
+        toastTimeoutId = null;
+    }, 2000);
 }
 
 // --- Search Logic ---
@@ -926,28 +945,23 @@ function closeDrawer() {
     setActiveNav('discover');
 }
 
-function closeAllOverlays(keepBackdrop = false) {
+function closeAllOverlays() {
     const paletteWasOpen = ui.palette.classList.contains('active');
 
     ui.palette.classList.remove('active');
     ui.drawer.classList.remove('active');
-    if (!keepBackdrop) ui.backdrop.classList.remove('active');
+    ui.backdrop.classList.remove('active');
 
     ui.cmdInput.disabled = true;
     markPaletteExpanded(false);
-
-    if (!keepBackdrop) {
-        setActiveNav('discover');
-    }
+    setActiveNav('discover');
 
     if (paletteWasOpen && lastFocusedElementBeforeOverlay instanceof HTMLElement) {
         lastFocusedElementBeforeOverlay.focus();
     }
 
-    if (!keepBackdrop) {
-        selectedSearchIndex = -1;
-        ui.cmdInput.setAttribute('aria-activedescendant', '');
-    }
+    selectedSearchIndex = -1;
+    ui.cmdInput.setAttribute('aria-activedescendant', '');
 }
 
 // --- Initialization ---

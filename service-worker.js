@@ -20,18 +20,35 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (e) => {
-    e.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => cache.addAll(ASSETS))
-            .then(() => self.skipWaiting())
-    );
+    e.waitUntil((async () => {
+        const cache = await caches.open(CACHE_NAME);
+
+        await Promise.allSettled(
+            ASSETS.map(async (asset) => {
+                try {
+                    await cache.add(asset);
+                } catch (error) {
+                    console.warn('Skipping cache asset during install:', asset, error);
+                }
+            })
+        );
+
+        await self.skipWaiting();
+    })());
 });
 
 self.addEventListener('fetch', (e) => {
     // API Strategy: Network Only (Let app.js handle failures with offline quotes)
     if (e.request.url.includes('quotes-api-ruddy.vercel.app')) {
         e.respondWith(
-            fetch(e.request).catch(() => new Response(null, { status: 503, statusText: 'Offline' }))
+            fetch(e.request).catch(() => new Response(
+                JSON.stringify({ success: false, error: 'Offline' }),
+                {
+                    status: 503,
+                    statusText: 'Offline',
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            ))
         );
         return;
     }
