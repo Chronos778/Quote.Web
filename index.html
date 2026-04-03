@@ -47,6 +47,18 @@
 
     <title>Quote.Web — Daily Inspiration</title>
 
+    <script>
+      (function normalizeProjectRootUrl() {
+        var path = window.location.pathname;
+        var lastSegment = path.split('/').pop();
+        var hasExtension = lastSegment.indexOf('.') !== -1;
+
+        if (!path.endsWith('/') && !hasExtension) {
+          window.location.replace(path + '/' + window.location.search + window.location.hash);
+        }
+      })();
+    </script>
+
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json" />
     <meta name="theme-color" content="#050505" />

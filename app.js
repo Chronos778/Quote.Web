@@ -1089,8 +1089,19 @@ function closeAllOverlays() {
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
+  const { pathname } = window.location;
+  const lastSlashIndex = pathname.lastIndexOf('/');
+  const lastSegment = pathname.slice(lastSlashIndex + 1);
+  const hasExtension = lastSegment.includes('.');
+  const basePath = hasExtension
+    ? pathname.slice(0, lastSlashIndex + 1) || '/'
+    : pathname.endsWith('/')
+      ? pathname
+      : `${pathname}/`;
+  const serviceWorkerPath = `${basePath}service-worker.js`;
+
   navigator.serviceWorker
-    .register('service-worker.js')
+    .register(serviceWorkerPath, { scope: basePath })
     .then(() => console.log('Service Worker Registered'))
     .catch((error) => console.error('Service Worker Failed', error));
 }
