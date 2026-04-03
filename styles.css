@@ -929,8 +929,8 @@ body:has(.dock:hover) .dock-hint-arrow {
     /* Dock sits above the dynamic sidebar */
     width: auto;
     left: 50%;
-    transform: translateX(-50%) !important;
-    /* Force center on mobile */
+    transform: translateX(-50%) translateY(0) !important;
+    /* Force center on mobile and show (reset desktop translateY(100%)) */
     z-index: 60;
     opacity: 1;
     pointer-events: auto;
@@ -939,7 +939,7 @@ body:has(.dock:hover) .dock-hint-arrow {
   }
 
   .dock:hover {
-    transform: translateX(-50%) !important;
+    transform: translateX(-50%) translateY(0) !important;
     /* Prevent jump on tap */
   }
 
