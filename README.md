@@ -2,7 +2,7 @@
 
 A fast, installable Progressive Web App for discovering and sharing inspiring quotes. Built with vanilla JavaScript, fully functional offline, and optimized for mobile.
 
-**[Live Demo](https://chronos778.github.io/quote.web)** | **[GitHub](https://github.com/Chronos778/quote.web)**
+**[Live Demo](https://chronos778.github.io/Quote.Web/)** | **[GitHub](https://github.com/Chronos778/Quote.Web)**
 
 ## Overview
 
@@ -26,8 +26,8 @@ Quote.Web is a standalone PWA that provides seamless quote discovery with robust
 ### Installation
 
 ```bash
-git clone https://github.com/Chronos778/quote.web.git
-cd quote.web
+git clone https://github.com/Chronos778/Quote.Web.git
+cd Quote.Web
 npm ci
 npx serve .
 ```
