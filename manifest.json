@@ -1,6 +1,7 @@
 {
   "name": "Quote.Web",
   "short_name": "Quote.Web",
+  "description": "A curated digital space for daily inspiration.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -973,15 +973,209 @@ body:has(.dock:hover) .dock-hint-arrow {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .reader-container,
-  .dock,
-  .dock-hint-arrow,
-  .quote-display,
-  .author-block,
-  .cmd-palette,
-  .overlay-backdrop {
-    animation: none !important;
-    transition: none !important;
+/* Toolbar Button */
+.toolbar-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-btn:hover {
+  background: var(--border-dim);
+  color: var(--text-main);
+}
+
+/* Image Generator Modal */
+.image-gen-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  width: 90%;
+  max-width: 420px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-highlight);
+  border-radius: 20px;
+  box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s var(--ease-out-expo);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 24px;
+}
+
+.image-gen-modal.active {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.image-gen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.image-gen-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.image-gen-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.image-gen-close:hover {
+  background: var(--border-dim);
+  color: var(--text-main);
+}
+
+.image-gen-preview-container {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-void);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-dim);
+}
+
+#image-gen-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-gen-templates {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  justify-content: center;
+}
+
+.template-btn {
+  background: transparent;
+  border: 2px solid transparent;
+  padding: 4px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.template-btn.active {
+  border-color: var(--accent-primary);
+}
+
+.template-preview {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 1px solid var(--border-dim);
+}
+
+.template-preview.deep-void {
+  background: #050505;
+}
+
+.template-preview.luminous {
+  background: #f8f7f4;
+}
+
+.template-preview.gradient-bliss {
+  background: linear-gradient(135deg, #4c1d95, #0f172a);
+}
+
+.image-gen-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.image-gen-actions .dock-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* Light Mode Overrides */
+html[data-theme="light"] {
+  --bg-void: #f8f7f4;
+  --bg-panel: #efeee9;
+  --bg-glass: rgba(255, 255, 255, 0.7);
+  --border-dim: rgba(0, 0, 0, 0.06);
+  --border-highlight: rgba(0, 0, 0, 0.12);
+
+  --text-main: #1a1a1a;
+  --text-muted: #6b6b73;
+  --text-faint: #a3a3ab;
+
+  --accent-primary: #7c3aed;
+  --accent-glow: rgba(124, 58, 237, 0.1);
+}
+
+html[data-theme="light"] .quote-display {
+  background: radial-gradient(circle at center, #1a1a1a, #6b6b73);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html[data-theme="light"] .grain {
+  opacity: 0.03;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.2) 0.5px, transparent 0.9px),
+    radial-gradient(circle at 80% 60%, rgba(0, 0, 0, 0.16) 0.4px, transparent 0.8px);
+}
+
+html[data-theme="light"] .cmd-palette,
+html[data-theme="light"] .drawer {
+  background: #f8f7f4;
+}
+
+html[data-theme="light"] .cmd-filter-select option {
+  background: #f8f7f4;
+}
+
+html[data-theme="light"] .cmd-kbd {
+  background: #e5e5e5;
+  color: #1a1a1a;
+  border-color: rgba(0,0,0,0.1);
+}
+
+html[data-theme="light"] .dock-btn.primary {
+  background: var(--text-main);
+  color: var(--bg-void);
+}
+
+html[data-theme="light"] .dock-btn.primary:hover {
+  background: #333;
+}
+
+@media (max-width: 640px) {
+  html[data-theme="light"] .sidebar {
+    background: rgba(248, 247, 244, 0.95);
   }
+}
 }

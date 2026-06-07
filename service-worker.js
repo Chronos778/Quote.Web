@@ -105,3 +105,50 @@ self.addEventListener('activate', (e) => {
     })
   );
 });
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  try {
+    const data = event.data.json();
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'Quote.Web', {
+        body: `"${data.body}" — ${data.author}`,
+        icon: data.icon || '/assets/icons/icon-192.png',
+        badge: data.badge || '/assets/icons/icon-192.png',
+        tag: data.tag || 'quote-web-notification',
+        data: { url: data.url || '/' }
+      })
+    );
+  } catch (err) {
+    console.error('Failed to parse push payload', err);
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  
+  const urlToOpen = new URL(event.notification.data.url, self.location.origin).href;
+
+  event.waitUntil(
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then((windowClients) => {
+      let matchingClient = null;
+      for (let i = 0; i < windowClients.length; i++) {
+        const windowClient = windowClients[i];
+        if (windowClient.url === urlToOpen) {
+          matchingClient = windowClient;
+          break;
+        }
+      }
+      
+      if (matchingClient) {
+        return matchingClient.focus();
+      } else {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});

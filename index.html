@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://chronos778.github.io; font-src 'self'; connect-src 'self' https://quotes-api-ruddy.vercel.app; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://chronos778.github.io; font-src 'self'; connect-src 'self' https://quotes-api-ruddy.vercel.app; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
@@ -144,12 +144,27 @@
           <i data-lucide="mail" class="nav-icon"></i>
           <span class="nav-label">Contact</span>
         </button>
+        <button
+          type="button"
+          class="nav-item"
+          data-nav="notifications"
+          data-action="toggle-notifications"
+          aria-label="Notifications"
+        >
+          <i data-lucide="bell" class="nav-icon" id="bell-icon"></i>
+          <span class="nav-label" id="bell-label">Daily Quote</span>
+        </button>
       </div>
     </nav>
 
     <!-- Main Workspace -->
     <main class="workspace">
-      <div class="toolbar"></div>
+      <div class="toolbar">
+        <button type="button" class="toolbar-btn" data-action="toggle-theme" aria-label="Toggle Theme">
+          <i data-lucide="sun" class="icon-sun"></i>
+          <i data-lucide="moon" class="icon-moon" style="display: none;"></i>
+        </button>
+      </div>
 
       <!-- Reader View -->
       <article class="reader-container">
@@ -172,6 +187,9 @@
         <button type="button" class="dock-btn" data-action="share-quote" aria-label="Share Quote">
           <i data-lucide="share-2" size="16"></i>
         </button>
+        <button type="button" class="dock-btn" data-action="generate-image" aria-label="Generate Image">
+          <i data-lucide="image-down" size="16"></i>
+        </button>
         <div class="dock-divider"></div>
         <button
           type="button"
@@ -187,6 +205,44 @@
 
     <!-- Overlays -->
     <div class="overlay-backdrop" id="backdrop" data-action="close-overlays"></div>
+
+    <!-- Image Generator Modal -->
+    <div class="image-gen-modal" id="image-gen-modal" role="dialog" aria-modal="true" aria-label="Generate Shareable Image">
+      <div class="image-gen-header">
+        <h3 class="image-gen-title">Share Image</h3>
+        <button type="button" class="image-gen-close" data-action="close-image-gen" aria-label="Close">
+          <i data-lucide="x" size="20"></i>
+        </button>
+      </div>
+      <div class="image-gen-preview-container">
+        <img id="image-gen-preview" alt="Preview of generated quote image" />
+      </div>
+      <div class="image-gen-templates">
+        <button type="button" class="template-btn active" data-action="select-template" data-template="deep-void" aria-label="Deep Void template">
+          <div class="template-preview deep-void"></div>
+        </button>
+        <button type="button" class="template-btn" data-action="select-template" data-template="luminous" aria-label="Luminous template">
+          <div class="template-preview luminous"></div>
+        </button>
+        <button type="button" class="template-btn" data-action="select-template" data-template="gradient-bliss" aria-label="Gradient Bliss template">
+          <div class="template-preview gradient-bliss"></div>
+        </button>
+      </div>
+      <div class="image-gen-actions">
+        <button type="button" class="dock-btn" data-action="copy-image" aria-label="Copy Image">
+          <i data-lucide="copy" size="16"></i>
+          <span>Copy</span>
+        </button>
+        <button type="button" class="dock-btn" data-action="download-image" aria-label="Download Image">
+          <i data-lucide="download" size="16"></i>
+          <span>Save</span>
+        </button>
+        <button type="button" class="dock-btn primary" data-action="share-image-file" aria-label="Share Image">
+          <i data-lucide="share" size="16"></i>
+          <span>Share</span>
+        </button>
+      </div>
+    </div>
 
     <!-- Command Palette -->
     <div

@@ -11,6 +11,9 @@ Quote.Web is a standalone PWA that provides seamless quote discovery with robust
 ## Features
 
 - **Progressive Web App** — Install as a standalone application on desktop or mobile devices
+- **Daily Push Notifications** — Opt-in to receive a daily quote every morning via Web Push API
+- **Shareable Image Generator** — Create aesthetic, Instagram-ready quote images directly in the browser using HTML5 Canvas (with 3 premium templates)
+- **Dynamic Themes** — Beautiful "Deep Void" dark mode and "Radiant Day" light mode with an interactive starfield background
 - **Fast Search** — Command palette search (Ctrl+K) with filters, sorting, and pagination
 - **Responsive Design** — Mobile-first UI with keyboard-friendly navigation
 - **Offline Functionality** — Works seamlessly without internet connectivity

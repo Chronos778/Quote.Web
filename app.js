@@ -64,7 +64,8 @@ class Starfield {
 
   drawStaticFrame() {
     this.ctx.clearRect(0, 0, this.width, this.height);
-    this.ctx.fillStyle = 'white';
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    this.ctx.fillStyle = isLight ? 'rgba(0,0,0,0.15)' : 'white';
 
     this.stars.forEach((star) => {
       this.ctx.globalAlpha = star.opacity;
@@ -107,7 +108,8 @@ class Starfield {
     }
 
     this.ctx.clearRect(0, 0, this.width, this.height);
-    this.ctx.fillStyle = 'white';
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    this.ctx.fillStyle = isLight ? 'rgba(0,0,0,0.15)' : 'white';
 
     this.stars.forEach((star) => {
       this.ctx.globalAlpha = star.opacity;
@@ -1086,6 +1088,363 @@ function closeAllOverlays() {
   ui.cmdInput.setAttribute('aria-activedescendant', '');
 }
 
+// --- Theme Manager ---
+const ThemeManager = {
+  init() {
+    this.theme = localStorage.getItem('theme');
+    if (!this.theme) {
+      this.theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+    this.applyTheme(this.theme);
+  },
+  
+  toggle() {
+    this.theme = this.theme === 'light' ? 'dark' : 'light';
+    localStorage.setItem('theme', this.theme);
+    this.applyTheme(this.theme);
+  },
+  
+  applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    
+    const sunIcon = document.querySelector('.icon-sun');
+    const moonIcon = document.querySelector('.icon-moon');
+    if (sunIcon && moonIcon) {
+      if (theme === 'light') {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+      } else {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+      }
+    }
+    
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', theme === 'light' ? '#f8f7f4' : '#050505');
+    }
+
+    if (window.starfieldInstance) {
+      window.starfieldInstance.resize();
+    }
+  }
+};
+
+// --- Push Notification Manager ---
+const PushNotificationManager = {
+  async init() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      this.updateBellUI(!!subscription);
+    } catch (e) {
+      console.warn('Failed to get push subscription', e);
+    }
+  },
+
+  updateBellUI(isSubscribed) {
+    const icon = document.getElementById('bell-icon');
+    const label = document.getElementById('bell-label');
+    if (icon) {
+      if (isSubscribed) {
+        icon.classList.add('filled');
+        icon.style.fill = 'currentColor';
+      } else {
+        icon.classList.remove('filled');
+        icon.style.fill = 'none';
+      }
+    }
+    if (label) {
+      label.textContent = isSubscribed ? 'Subscribed' : 'Daily Quote';
+    }
+  },
+
+  urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
+  },
+
+  async toggle() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      showToast('Push notifications not supported by your browser');
+      return;
+    }
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      let subscription = await registration.pushManager.getSubscription();
+      
+      if (subscription) {
+        await subscription.unsubscribe();
+        await fetch(`${API_BASE}/push/unsubscribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: subscription.endpoint })
+        });
+        this.updateBellUI(false);
+        showToast('Notifications disabled');
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          showToast('Notification permission denied');
+          return;
+        }
+
+        const publicKey = window.QUOTE_WEB_CONFIG?.vapidPublicKey;
+        if (!publicKey) {
+          showToast('VAPID key not configured');
+          return;
+        }
+
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this.urlBase64ToUint8Array(publicKey)
+        });
+
+        await fetch(`${API_BASE}/push/subscribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subscription })
+        });
+        
+        this.updateBellUI(true);
+        showToast('Subscribed to daily quotes');
+      }
+    } catch (error) {
+      console.error('Push notification toggle failed', error);
+      showToast('Failed to toggle notifications');
+    }
+  }
+};
+
+// --- Image Generator ---
+const ImageGenerator = {
+  activeTemplate: 'deep-void',
+  currentBlob: null,
+  
+  templates: {
+    'deep-void': {
+      bg: '#050505',
+      text: '#f3f4f6',
+      author: '#a1a1aa',
+      accent: '#8b5cf6',
+      watermark: 'rgba(255,255,255,0.2)',
+      grain: true,
+      stars: true
+    },
+    'luminous': {
+      bg: '#f8f7f4',
+      text: '#1a1a1a',
+      author: '#6b6b73',
+      accent: '#d97706',
+      watermark: 'rgba(0,0,0,0.2)',
+      grain: false,
+      stars: false
+    },
+    'gradient-bliss': {
+      bgGradient: ['#4c1d95', '#0f172a'],
+      text: '#ffffff',
+      author: '#cbd5e1',
+      accent: 'rgba(255,255,255,0.3)',
+      watermark: 'rgba(255,255,255,0.3)',
+      grain: true,
+      stars: false
+    }
+  },
+
+  open() {
+    closeAllOverlays();
+    ui.backdrop.classList.add('active');
+    document.getElementById('image-gen-modal').classList.add('active');
+    this.render();
+  },
+
+  close() {
+    document.getElementById('image-gen-modal').classList.remove('active');
+    ui.backdrop.classList.remove('active');
+  },
+
+  selectTemplate(templateId) {
+    this.activeTemplate = templateId;
+    document.querySelectorAll('.template-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.template === templateId);
+    });
+    this.render();
+  },
+
+  wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    let currentY = y;
+    
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line + words[i] + ' ';
+      const metrics = ctx.measureText(testLine);
+      const testWidth = metrics.width;
+      
+      if (testWidth > maxWidth && i > 0) {
+        ctx.fillText(line, x, currentY);
+        line = words[i] + ' ';
+        currentY += lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    ctx.fillText(line, x, currentY);
+    return currentY;
+  },
+
+  async render() {
+    await document.fonts.ready;
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 1080;
+    canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+    
+    const tpl = this.templates[this.activeTemplate];
+    
+    if (tpl.bgGradient) {
+      const grad = ctx.createLinearGradient(0, 0, 1080, 1080);
+      grad.addColorStop(0, tpl.bgGradient[0]);
+      grad.addColorStop(1, tpl.bgGradient[1]);
+      ctx.fillStyle = grad;
+    } else {
+      ctx.fillStyle = tpl.bg;
+    }
+    ctx.fillRect(0, 0, 1080, 1080);
+    
+    if (tpl.stars) {
+      ctx.fillStyle = 'white';
+      for(let i=0; i<150; i++) {
+        ctx.globalAlpha = Math.random() * 0.8;
+        ctx.beginPath();
+        ctx.arc(Math.random()*1080, Math.random()*1080, Math.random()*2, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+    
+    if (tpl.grain) {
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      for(let i=0; i<5000; i++) {
+        ctx.fillRect(Math.random()*1080, Math.random()*1080, 2, 2);
+      }
+    }
+    
+    const quoteText = ui.text.innerText.replace(/^"|"$/g, '');
+    const quoteAuthor = ui.author.innerText;
+    
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    let fontSize = 80;
+    if (quoteText.length < 50) fontSize = 100;
+    else if (quoteText.length > 150) fontSize = 64;
+    else if (quoteText.length > 250) fontSize = 52;
+    
+    ctx.font = `400 ${fontSize}px "Fraunces", serif`;
+    ctx.fillStyle = tpl.text;
+    
+    const maxWidth = 800;
+    const lineHeight = fontSize * 1.3;
+    
+    const words = quoteText.split(' ');
+    let lines = 1;
+    let lineForMeasure = '';
+    for(let i=0; i<words.length; i++) {
+      const test = lineForMeasure + words[i] + ' ';
+      if (ctx.measureText(test).width > maxWidth && i > 0) {
+        lines++;
+        lineForMeasure = words[i] + ' ';
+      } else {
+        lineForMeasure = test;
+      }
+    }
+    
+    const totalTextHeight = lines * lineHeight;
+    let startY = (1080 - totalTextHeight) / 2 - 40;
+    
+    const endY = this.wrapText(ctx, quoteText, 540, startY, maxWidth, lineHeight);
+    
+    const accentY = endY + 80;
+    ctx.fillStyle = tpl.accent;
+    ctx.fillRect(540 - 40, accentY, 80, 4);
+    
+    ctx.font = `500 36px "Manrope", sans-serif`;
+    ctx.fillStyle = tpl.author;
+    ctx.fillText(quoteAuthor, 540, accentY + 60);
+    
+    ctx.font = `600 24px "Manrope", sans-serif`;
+    ctx.fillStyle = tpl.watermark;
+    ctx.fillText("Quote.Web", 540, 1020);
+    
+    canvas.toBlob((blob) => {
+      this.currentBlob = blob;
+      const url = URL.createObjectURL(blob);
+      const img = document.getElementById('image-gen-preview');
+      if (img.src && img.src.startsWith('blob:')) {
+        URL.revokeObjectURL(img.src);
+      }
+      img.src = url;
+    }, 'image/png');
+  },
+
+  async downloadImage() {
+    if (!this.currentBlob) return;
+    const url = URL.createObjectURL(this.currentBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quote-${Date.now()}.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+    showToast('Image downloaded');
+  },
+
+  async shareImage() {
+    if (!this.currentBlob) return;
+    
+    const file = new File([this.currentBlob], 'quote.png', { type: 'image/png' });
+    
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'Daily Inspiration',
+          text: ui.text.innerText + ' — ' + ui.author.innerText
+        });
+        showToast('Shared successfully');
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+          this.downloadImage();
+        }
+      }
+    } else {
+      this.downloadImage();
+    }
+  },
+
+  async copyImage() {
+    if (!this.currentBlob) return;
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.write) {
+        throw new Error('Clipboard API not supported');
+      }
+      const item = new ClipboardItem({ 'image/png': this.currentBlob });
+      await navigator.clipboard.write([item]);
+      showToast('Image copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy image', err);
+      showToast('Copy failed, try downloading instead');
+    }
+  }
+};
+
 function registerServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
 
@@ -1152,7 +1511,30 @@ async function handleActionClick(event) {
     case 'fresh-quote':
       await fetchNewQuote();
       break;
-
+    case 'toggle-theme':
+      ThemeManager.toggle();
+      break;
+    case 'generate-image':
+      ImageGenerator.open();
+      break;
+    case 'close-image-gen':
+      ImageGenerator.close();
+      break;
+    case 'select-template':
+      ImageGenerator.selectTemplate(actionElement.dataset.template);
+      break;
+    case 'copy-image':
+      await ImageGenerator.copyImage();
+      break;
+    case 'download-image':
+      await ImageGenerator.downloadImage();
+      break;
+    case 'share-image-file':
+      await ImageGenerator.shareImage();
+      break;
+    case 'toggle-notifications':
+      await PushNotificationManager.toggle();
+      break;
     case 'close-overlays':
       closeAllOverlays();
       break;
@@ -1197,8 +1579,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Starfield
-  new Starfield('starfield');
+  window.starfieldInstance = new Starfield('starfield');
   setActiveNav('discover');
+  
+  ThemeManager.init();
+  PushNotificationManager.init();
 
   // Event Listeners
   document.addEventListener('keydown', (e) => {
