@@ -1120,7 +1120,7 @@ body:has(.dock:hover) .dock-hint-arrow {
 }
 
 /* Light Mode Overrides */
-html[data-theme="light"] {
+html[data-theme='light'] {
   --bg-void: #f8f7f4;
   --bg-panel: #efeee9;
   --bg-glass: rgba(255, 255, 255, 0.7);
@@ -1135,47 +1135,46 @@ html[data-theme="light"] {
   --accent-glow: rgba(124, 58, 237, 0.1);
 }
 
-html[data-theme="light"] .quote-display {
+html[data-theme='light'] .quote-display {
   background: radial-gradient(circle at center, #1a1a1a, #6b6b73);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-html[data-theme="light"] .grain {
+html[data-theme='light'] .grain {
   opacity: 0.03;
   background-image:
     radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.2) 0.5px, transparent 0.9px),
     radial-gradient(circle at 80% 60%, rgba(0, 0, 0, 0.16) 0.4px, transparent 0.8px);
 }
 
-html[data-theme="light"] .cmd-palette,
-html[data-theme="light"] .drawer {
+html[data-theme='light'] .cmd-palette,
+html[data-theme='light'] .drawer {
   background: #f8f7f4;
 }
 
-html[data-theme="light"] .cmd-filter-select option {
+html[data-theme='light'] .cmd-filter-select option {
   background: #f8f7f4;
 }
 
-html[data-theme="light"] .cmd-kbd {
+html[data-theme='light'] .cmd-kbd {
   background: #e5e5e5;
   color: #1a1a1a;
-  border-color: rgba(0,0,0,0.1);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
-html[data-theme="light"] .dock-btn.primary {
+html[data-theme='light'] .dock-btn.primary {
   background: var(--text-main);
   color: var(--bg-void);
 }
 
-html[data-theme="light"] .dock-btn.primary:hover {
+html[data-theme='light'] .dock-btn.primary:hover {
   background: #333;
 }
 
 @media (max-width: 640px) {
-  html[data-theme="light"] .sidebar {
+  html[data-theme='light'] .sidebar {
     background: rgba(248, 247, 244, 0.95);
   }
-}
 }

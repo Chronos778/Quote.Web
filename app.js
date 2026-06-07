@@ -1097,16 +1097,16 @@ const ThemeManager = {
     }
     this.applyTheme(this.theme);
   },
-  
+
   toggle() {
     this.theme = this.theme === 'light' ? 'dark' : 'light';
     localStorage.setItem('theme', this.theme);
     this.applyTheme(this.theme);
   },
-  
+
   applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    
+
     const sunIcon = document.querySelector('.icon-sun');
     const moonIcon = document.querySelector('.icon-moon');
     if (sunIcon && moonIcon) {
@@ -1118,7 +1118,7 @@ const ThemeManager = {
         moonIcon.style.display = 'none';
       }
     }
-    
+
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
       metaThemeColor.setAttribute('content', theme === 'light' ? '#f8f7f4' : '#050505');
@@ -1127,14 +1127,14 @@ const ThemeManager = {
     if (window.starfieldInstance) {
       window.starfieldInstance.resize();
     }
-  }
+  },
 };
 
 // --- Push Notification Manager ---
 const PushNotificationManager = {
   async init() {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
-    
+
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
@@ -1162,8 +1162,8 @@ const PushNotificationManager = {
   },
 
   urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
     const rawData = atob(base64);
     return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
   },
@@ -1177,13 +1177,13 @@ const PushNotificationManager = {
     try {
       const registration = await navigator.serviceWorker.ready;
       let subscription = await registration.pushManager.getSubscription();
-      
+
       if (subscription) {
         await subscription.unsubscribe();
         await fetch(`${API_BASE}/push/unsubscribe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ endpoint: subscription.endpoint })
+          body: JSON.stringify({ endpoint: subscription.endpoint }),
         });
         this.updateBellUI(false);
         showToast('Notifications disabled');
@@ -1202,15 +1202,15 @@ const PushNotificationManager = {
 
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(publicKey)
+          applicationServerKey: this.urlBase64ToUint8Array(publicKey),
         });
 
         await fetch(`${API_BASE}/push/subscribe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ subscription })
+          body: JSON.stringify({ subscription }),
         });
-        
+
         this.updateBellUI(true);
         showToast('Subscribed to daily quotes');
       }
@@ -1218,14 +1218,14 @@ const PushNotificationManager = {
       console.error('Push notification toggle failed', error);
       showToast('Failed to toggle notifications');
     }
-  }
+  },
 };
 
 // --- Image Generator ---
 const ImageGenerator = {
   activeTemplate: 'deep-void',
   currentBlob: null,
-  
+
   templates: {
     'deep-void': {
       bg: '#050505',
@@ -1234,16 +1234,16 @@ const ImageGenerator = {
       accent: '#8b5cf6',
       watermark: 'rgba(255,255,255,0.2)',
       grain: true,
-      stars: true
+      stars: true,
     },
-    'luminous': {
+    luminous: {
       bg: '#f8f7f4',
       text: '#1a1a1a',
       author: '#6b6b73',
       accent: '#d97706',
       watermark: 'rgba(0,0,0,0.2)',
       grain: false,
-      stars: false
+      stars: false,
     },
     'gradient-bliss': {
       bgGradient: ['#4c1d95', '#0f172a'],
@@ -1252,8 +1252,8 @@ const ImageGenerator = {
       accent: 'rgba(255,255,255,0.3)',
       watermark: 'rgba(255,255,255,0.3)',
       grain: true,
-      stars: false
-    }
+      stars: false,
+    },
   },
 
   open() {
@@ -1270,7 +1270,7 @@ const ImageGenerator = {
 
   selectTemplate(templateId) {
     this.activeTemplate = templateId;
-    document.querySelectorAll('.template-btn').forEach(btn => {
+    document.querySelectorAll('.template-btn').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.template === templateId);
     });
     this.render();
@@ -1280,12 +1280,12 @@ const ImageGenerator = {
     const words = text.split(' ');
     let line = '';
     let currentY = y;
-    
+
     for (let i = 0; i < words.length; i++) {
       const testLine = line + words[i] + ' ';
       const metrics = ctx.measureText(testLine);
       const testWidth = metrics.width;
-      
+
       if (testWidth > maxWidth && i > 0) {
         ctx.fillText(line, x, currentY);
         line = words[i] + ' ';
@@ -1300,14 +1300,14 @@ const ImageGenerator = {
 
   async render() {
     await document.fonts.ready;
-    
+
     const canvas = document.createElement('canvas');
     canvas.width = 1080;
     canvas.height = 1080;
     const ctx = canvas.getContext('2d');
-    
+
     const tpl = this.templates[this.activeTemplate];
-    
+
     if (tpl.bgGradient) {
       const grad = ctx.createLinearGradient(0, 0, 1080, 1080);
       grad.addColorStop(0, tpl.bgGradient[0]);
@@ -1317,46 +1317,46 @@ const ImageGenerator = {
       ctx.fillStyle = tpl.bg;
     }
     ctx.fillRect(0, 0, 1080, 1080);
-    
+
     if (tpl.stars) {
       ctx.fillStyle = 'white';
-      for(let i=0; i<150; i++) {
+      for (let i = 0; i < 150; i++) {
         ctx.globalAlpha = Math.random() * 0.8;
         ctx.beginPath();
-        ctx.arc(Math.random()*1080, Math.random()*1080, Math.random()*2, 0, Math.PI*2);
+        ctx.arc(Math.random() * 1080, Math.random() * 1080, Math.random() * 2, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1;
     }
-    
+
     if (tpl.grain) {
       ctx.fillStyle = 'rgba(255,255,255,0.03)';
-      for(let i=0; i<5000; i++) {
-        ctx.fillRect(Math.random()*1080, Math.random()*1080, 2, 2);
+      for (let i = 0; i < 5000; i++) {
+        ctx.fillRect(Math.random() * 1080, Math.random() * 1080, 2, 2);
       }
     }
-    
+
     const quoteText = ui.text.innerText.replace(/^"|"$/g, '');
     const quoteAuthor = ui.author.innerText;
-    
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
+
     let fontSize = 80;
     if (quoteText.length < 50) fontSize = 100;
     else if (quoteText.length > 150) fontSize = 64;
     else if (quoteText.length > 250) fontSize = 52;
-    
+
     ctx.font = `400 ${fontSize}px "Fraunces", serif`;
     ctx.fillStyle = tpl.text;
-    
+
     const maxWidth = 800;
     const lineHeight = fontSize * 1.3;
-    
+
     const words = quoteText.split(' ');
     let lines = 1;
     let lineForMeasure = '';
-    for(let i=0; i<words.length; i++) {
+    for (let i = 0; i < words.length; i++) {
       const test = lineForMeasure + words[i] + ' ';
       if (ctx.measureText(test).width > maxWidth && i > 0) {
         lines++;
@@ -1365,24 +1365,24 @@ const ImageGenerator = {
         lineForMeasure = test;
       }
     }
-    
+
     const totalTextHeight = lines * lineHeight;
     let startY = (1080 - totalTextHeight) / 2 - 40;
-    
+
     const endY = this.wrapText(ctx, quoteText, 540, startY, maxWidth, lineHeight);
-    
+
     const accentY = endY + 80;
     ctx.fillStyle = tpl.accent;
     ctx.fillRect(540 - 40, accentY, 80, 4);
-    
+
     ctx.font = `500 36px "Manrope", sans-serif`;
     ctx.fillStyle = tpl.author;
     ctx.fillText(quoteAuthor, 540, accentY + 60);
-    
+
     ctx.font = `600 24px "Manrope", sans-serif`;
     ctx.fillStyle = tpl.watermark;
-    ctx.fillText("Quote.Web", 540, 1020);
-    
+    ctx.fillText('Quote.Web', 540, 1020);
+
     canvas.toBlob((blob) => {
       this.currentBlob = blob;
       const url = URL.createObjectURL(blob);
@@ -1407,15 +1407,15 @@ const ImageGenerator = {
 
   async shareImage() {
     if (!this.currentBlob) return;
-    
+
     const file = new File([this.currentBlob], 'quote.png', { type: 'image/png' });
-    
+
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
           files: [file],
           title: 'Daily Inspiration',
-          text: ui.text.innerText + ' — ' + ui.author.innerText
+          text: ui.text.innerText + ' — ' + ui.author.innerText,
         });
         showToast('Shared successfully');
       } catch (err) {
@@ -1442,7 +1442,7 @@ const ImageGenerator = {
       console.error('Failed to copy image', err);
       showToast('Copy failed, try downloading instead');
     }
-  }
+  },
 };
 
 function registerServiceWorker() {
@@ -1581,7 +1581,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Starfield
   window.starfieldInstance = new Starfield('starfield');
   setActiveNav('discover');
-  
+
   ThemeManager.init();
   PushNotificationManager.init();
 

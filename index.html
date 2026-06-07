@@ -160,9 +160,14 @@
     <!-- Main Workspace -->
     <main class="workspace">
       <div class="toolbar">
-        <button type="button" class="toolbar-btn" data-action="toggle-theme" aria-label="Toggle Theme">
+        <button
+          type="button"
+          class="toolbar-btn"
+          data-action="toggle-theme"
+          aria-label="Toggle Theme"
+        >
           <i data-lucide="sun" class="icon-sun"></i>
-          <i data-lucide="moon" class="icon-moon" style="display: none;"></i>
+          <i data-lucide="moon" class="icon-moon" style="display: none"></i>
         </button>
       </div>
 
@@ -187,7 +192,12 @@
         <button type="button" class="dock-btn" data-action="share-quote" aria-label="Share Quote">
           <i data-lucide="share-2" size="16"></i>
         </button>
-        <button type="button" class="dock-btn" data-action="generate-image" aria-label="Generate Image">
+        <button
+          type="button"
+          class="dock-btn"
+          data-action="generate-image"
+          aria-label="Generate Image"
+        >
           <i data-lucide="image-down" size="16"></i>
         </button>
         <div class="dock-divider"></div>
@@ -207,10 +217,21 @@
     <div class="overlay-backdrop" id="backdrop" data-action="close-overlays"></div>
 
     <!-- Image Generator Modal -->
-    <div class="image-gen-modal" id="image-gen-modal" role="dialog" aria-modal="true" aria-label="Generate Shareable Image">
+    <div
+      class="image-gen-modal"
+      id="image-gen-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Generate Shareable Image"
+    >
       <div class="image-gen-header">
         <h3 class="image-gen-title">Share Image</h3>
-        <button type="button" class="image-gen-close" data-action="close-image-gen" aria-label="Close">
+        <button
+          type="button"
+          class="image-gen-close"
+          data-action="close-image-gen"
+          aria-label="Close"
+        >
           <i data-lucide="x" size="20"></i>
         </button>
       </div>
@@ -218,13 +239,31 @@
         <img id="image-gen-preview" alt="Preview of generated quote image" />
       </div>
       <div class="image-gen-templates">
-        <button type="button" class="template-btn active" data-action="select-template" data-template="deep-void" aria-label="Deep Void template">
+        <button
+          type="button"
+          class="template-btn active"
+          data-action="select-template"
+          data-template="deep-void"
+          aria-label="Deep Void template"
+        >
           <div class="template-preview deep-void"></div>
         </button>
-        <button type="button" class="template-btn" data-action="select-template" data-template="luminous" aria-label="Luminous template">
+        <button
+          type="button"
+          class="template-btn"
+          data-action="select-template"
+          data-template="luminous"
+          aria-label="Luminous template"
+        >
           <div class="template-preview luminous"></div>
         </button>
-        <button type="button" class="template-btn" data-action="select-template" data-template="gradient-bliss" aria-label="Gradient Bliss template">
+        <button
+          type="button"
+          class="template-btn"
+          data-action="select-template"
+          data-template="gradient-bliss"
+          aria-label="Gradient Bliss template"
+        >
           <div class="template-preview gradient-bliss"></div>
         </button>
       </div>
@@ -233,11 +272,21 @@
           <i data-lucide="copy" size="16"></i>
           <span>Copy</span>
         </button>
-        <button type="button" class="dock-btn" data-action="download-image" aria-label="Download Image">
+        <button
+          type="button"
+          class="dock-btn"
+          data-action="download-image"
+          aria-label="Download Image"
+        >
           <i data-lucide="download" size="16"></i>
           <span>Save</span>
         </button>
-        <button type="button" class="dock-btn primary" data-action="share-image-file" aria-label="Share Image">
+        <button
+          type="button"
+          class="dock-btn primary"
+          data-action="share-image-file"
+          aria-label="Share Image"
+        >
           <i data-lucide="share" size="16"></i>
           <span>Share</span>
         </button>
