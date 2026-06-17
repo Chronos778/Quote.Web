@@ -1121,7 +1121,7 @@ const ThemeManager = {
 
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (metaThemeColor) {
-      metaThemeColor.setAttribute('content', theme === 'light' ? '#f8f7f4' : '#050505');
+      metaThemeColor.setAttribute('content', theme === 'light' ? '#fafafa' : '#050505');
     }
 
     if (window.starfieldInstance) {

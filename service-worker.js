@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quote-web-v3';
+const CACHE_NAME = 'quote-web-v5';
 const ASSETS = [
   './',
   './index.html',
