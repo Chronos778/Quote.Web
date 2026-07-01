@@ -97,7 +97,10 @@
   --text-faint: #52525b;
 
   --accent-primary: #8b5cf6;
-  --accent-glow: rgba(139, 92, 246, 0.15);
+  --accent-rgb: 139, 92, 246;
+  --accent-light: var(--accent-light);
+  --accent-lighter: var(--accent-lighter);
+  --accent-glow: rgba(var(--accent-rgb), 0.15);
 
   --font-display: 'Fraunces', serif;
   --font-ui: 'Manrope', sans-serif;
@@ -245,7 +248,7 @@ canvas#starfield {
 .cmd-input:focus-visible,
 .cmd-filter-input:focus-visible,
 .cmd-filter-select:focus-visible {
-  outline: 2px solid rgba(139, 92, 246, 0.55);
+  outline: 2px solid rgba(var(--accent-rgb), 0.55);
   outline-offset: 2px;
 }
 
@@ -257,8 +260,8 @@ canvas#starfield {
 
 .nav-item.active {
   background: var(--accent-glow);
-  color: #d8b4fe;
-  border: 1px solid rgba(139, 92, 246, 0.1);
+  color: var(--accent-light);
+  border: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 .nav-icon {
@@ -336,9 +339,9 @@ canvas#starfield {
   margin-bottom: 32px;
   font-weight: 600;
   padding: 6px 12px;
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(var(--accent-rgb), 0.05);
   border-radius: 999px;
-  border: 1px solid rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 .quote-display {
@@ -650,7 +653,7 @@ body:has(.dock:hover) .dock-hint-arrow {
 .cmd-filter-input:focus,
 .cmd-filter-select:focus {
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.25);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.25);
 }
 
 .cmd-filter-select option {
@@ -747,15 +750,15 @@ body:has(.dock:hover) .dock-hint-arrow {
 }
 
 .cmd-item.is-load-more {
-  border: 1px dashed rgba(139, 92, 246, 0.28);
-  color: #d8b4fe;
+  border: 1px dashed rgba(var(--accent-rgb), 0.28);
+  color: var(--accent-light);
 }
 
 .cmd-item.is-load-more:hover,
 .cmd-item.is-load-more.selected {
-  background: rgba(139, 92, 246, 0.12);
-  border-color: rgba(139, 92, 246, 0.45);
-  color: #e9d5ff;
+  background: rgba(var(--accent-rgb), 0.12);
+  border-color: rgba(var(--accent-rgb), 0.45);
+  color: var(--accent-lighter);
 }
 
 .cmd-kbd {
@@ -813,7 +816,7 @@ body:has(.dock:hover) .dock-hint-arrow {
 .drawer-content a {
   color: var(--accent-primary);
   text-decoration: none;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+  border-bottom: 1px solid rgba(var(--accent-rgb), 0.3);
   transition: border-color 0.2s;
 }
 
@@ -1121,23 +1124,26 @@ body:has(.dock:hover) .dock-hint-arrow {
 
 /* Light Mode Overrides */
 html[data-theme='light'] {
-  --bg-void: #f8fafc;
+  --bg-void: #fdfbf7;
   --bg-panel: #ffffff;
   --bg-glass: rgba(255, 255, 255, 0.75);
-  --border-dim: rgba(15, 23, 42, 0.06);
-  --border-highlight: rgba(15, 23, 42, 0.12);
+  --border-dim: rgba(28, 25, 23, 0.05);
+  --border-highlight: rgba(28, 25, 23, 0.1);
 
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --text-faint: #94a3b8;
+  --text-main: #1c1917;
+  --text-muted: #57534e;
+  --text-faint: #a8a29e;
 
-  --accent-primary: #4f46e5;
-  --accent-glow: rgba(79, 70, 229, 0.12);
+  --accent-primary: #c2410c;
+  --accent-rgb: 194, 65, 12;
+  --accent-light: #ea580c;
+  --accent-lighter: #f97316;
+  --accent-glow: rgba(var(--accent-rgb), 0.12);
 }
 
 /* Light mode specific background enhancements */
 html[data-theme='light'] body {
-  background: linear-gradient(180deg, #60a5fa 0%, #e0f2fe 100%);
+  background: var(--bg-void);
   background-attachment: fixed;
 }
 
@@ -1200,34 +1206,34 @@ html[data-theme='light'] .cmd-kbd {
 html[data-theme='light'] .dock-btn.primary {
   background: var(--accent-primary);
   color: #ffffff;
-  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+  box-shadow: 0 4px 14px 0 rgba(194, 65, 12, 0.39);
 }
 
 html[data-theme='light'] .dock-btn.primary:hover {
-  background: #4338ca;
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.23);
+  background: #9a3412;
+  box-shadow: 0 6px 20px rgba(194, 65, 12, 0.23);
   transform: translateY(-1px);
 }
 
 html[data-theme='light'] .drawer-title {
-  background: linear-gradient(135deg, #0f172a, #475569);
+  background: linear-gradient(135deg, #1c1917, #57534e);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 html[data-theme='light'] .brand-logo {
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  box-shadow: 0 4px 12px rgba(194, 65, 12, 0.2);
 }
 
 html[data-theme='light'] .nav-item:hover {
-  background: rgba(15, 23, 42, 0.04);
+  background: rgba(28, 25, 23, 0.04);
 }
 
 html[data-theme='light'] .nav-item.active {
   background: var(--accent-glow);
   color: var(--accent-primary);
-  border: 1px solid rgba(79, 70, 229, 0.1);
+  border: 1px solid rgba(194, 65, 12, 0.1);
 }
 
 @media (max-width: 640px) {

@@ -59,7 +59,7 @@ class Starfield {
 
   createElements() {
     this.stars = [];
-    this.clouds = [];
+    this.orbs = [];
 
     const count = this.width < 768 ? 80 : 220;
     for (let i = 0; i < count; i++) {
@@ -72,15 +72,21 @@ class Starfield {
       });
     }
 
-    const cloudCount = this.width < 768 ? 5 : 12;
-    for (let i = 0; i < cloudCount; i++) {
-      this.clouds.push({
+    // Create 3 large ambient orbs for light mode (warm tints)
+    const orbColors = [
+      { r: 217, g: 119, b: 6, a: 0.4 }, // Amber/Terracotta
+      { r: 225, g: 29, b: 72, a: 0.3 }, // Rose/Blush
+      { r: 234, g: 179, b: 8, a: 0.35 }, // Gold
+    ];
+
+    for (let i = 0; i < orbColors.length; i++) {
+      this.orbs.push({
         x: Math.random() * this.width,
-        y: Math.random() * (this.height * 0.7), // Mostly top 70%
-        size: Math.random() * 30 + 30, // Base size
-        speed: Math.random() * 0.2 + 0.05,
-        opacity: Math.random() * 0.5 + 0.3,
-        scale: Math.random() * 0.8 + 0.6,
+        y: Math.random() * this.height,
+        radius: Math.random() * 200 + 400, // Very large (400-600px)
+        dx: (Math.random() - 0.5) * 0.5, // Slow drifting
+        dy: (Math.random() - 0.5) * 0.5,
+        color: orbColors[i],
       });
     }
   }
@@ -90,40 +96,35 @@ class Starfield {
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
 
     if (isLight) {
-      this.drawClouds(false);
+      this.drawOrbs(false);
     } else {
       this.drawStars(false);
     }
   }
 
-  drawClouds(move) {
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  drawOrbs(move) {
+    this.orbs.forEach((orb) => {
+      const gradient = this.ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.radius);
+      gradient.addColorStop(
+        0,
+        `rgba(${orb.color.r}, ${orb.color.g}, ${orb.color.b}, ${orb.color.a})`
+      );
+      gradient.addColorStop(1, `rgba(${orb.color.r}, ${orb.color.g}, ${orb.color.b}, 0)`);
 
-    this.clouds.forEach((cloud) => {
-      this.ctx.globalAlpha = cloud.opacity;
-      this.ctx.save();
-      this.ctx.translate(cloud.x, cloud.y);
-      this.ctx.scale(cloud.scale, cloud.scale);
-
+      this.ctx.fillStyle = gradient;
       this.ctx.beginPath();
-      // Draw a simple cloud shape using multiple overlapping circles
-      this.ctx.arc(0, 0, cloud.size, 0, Math.PI * 2);
-      this.ctx.arc(-cloud.size * 0.8, cloud.size * 0.2, cloud.size * 0.7, 0, Math.PI * 2);
-      this.ctx.arc(cloud.size * 0.8, cloud.size * 0.2, cloud.size * 0.7, 0, Math.PI * 2);
-      this.ctx.arc(-cloud.size * 1.5, cloud.size * 0.5, cloud.size * 0.5, 0, Math.PI * 2);
-      this.ctx.arc(cloud.size * 1.5, cloud.size * 0.5, cloud.size * 0.5, 0, Math.PI * 2);
+      this.ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
       this.ctx.fill();
-      this.ctx.restore();
 
       if (move) {
-        cloud.x += cloud.speed;
-        if (cloud.x - cloud.size * 2 > this.width) {
-          cloud.x = -cloud.size * 2;
-          cloud.y = Math.random() * (this.height * 0.7);
-        }
+        orb.x += orb.dx;
+        orb.y += orb.dy;
+
+        // Bounce gently off walls
+        if (orb.x - orb.radius > this.width || orb.x + orb.radius < 0) orb.dx *= -1;
+        if (orb.y - orb.radius > this.height || orb.y + orb.radius < 0) orb.dy *= -1;
       }
     });
-    this.ctx.globalAlpha = 1;
   }
 
   drawStars(move) {
