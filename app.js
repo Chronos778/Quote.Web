@@ -181,7 +181,7 @@ class Starfield {
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
 
     if (isLight) {
-      this.drawClouds(true);
+      this.drawOrbs(true);
     } else {
       this.drawStars(true);
     }
