@@ -21,7 +21,17 @@ class Starfield {
       resizeTimer = setTimeout(() => this.resize(), STARFIELD_RESIZE_DEBOUNCE_MS);
     });
     document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
-    this.createStars();
+    this.createElements();
+
+    // Re-create elements if theme changes so colors/opacities can be adjusted if needed (optional)
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'data-theme') {
+          if (this.isReducedMotion) this.drawStaticFrame();
+        }
+      });
+    });
+    observer.observe(document.documentElement, { attributes: true });
 
     if (this.isReducedMotion) {
       this.drawStaticFrame();
@@ -40,17 +50,18 @@ class Starfield {
     this.canvas.height = Math.floor(this.height * dpr);
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    this.createStars();
+    this.createElements();
 
     if (this.isReducedMotion) {
       this.drawStaticFrame();
     }
   }
 
-  createStars() {
+  createElements() {
     this.stars = [];
-    const count = this.width < 768 ? 80 : 220;
+    this.clouds = [];
 
+    const count = this.width < 768 ? 80 : 220;
     for (let i = 0; i < count; i++) {
       this.stars.push({
         x: Math.random() * this.width,
@@ -60,20 +71,78 @@ class Starfield {
         opacity: Math.random(),
       });
     }
+
+    const cloudCount = this.width < 768 ? 5 : 12;
+    for (let i = 0; i < cloudCount; i++) {
+      this.clouds.push({
+        x: Math.random() * this.width,
+        y: Math.random() * (this.height * 0.7), // Mostly top 70%
+        size: Math.random() * 30 + 30, // Base size
+        speed: Math.random() * 0.2 + 0.05,
+        opacity: Math.random() * 0.5 + 0.3,
+        scale: Math.random() * 0.8 + 0.6,
+      });
+    }
   }
 
   drawStaticFrame() {
     this.ctx.clearRect(0, 0, this.width, this.height);
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    this.ctx.fillStyle = isLight ? 'rgba(0,0,0,0.15)' : 'white';
+
+    if (isLight) {
+      this.drawClouds(false);
+    } else {
+      this.drawStars(false);
+    }
+  }
+
+  drawClouds(move) {
+    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+
+    this.clouds.forEach((cloud) => {
+      this.ctx.globalAlpha = cloud.opacity;
+      this.ctx.save();
+      this.ctx.translate(cloud.x, cloud.y);
+      this.ctx.scale(cloud.scale, cloud.scale);
+
+      this.ctx.beginPath();
+      // Draw a simple cloud shape using multiple overlapping circles
+      this.ctx.arc(0, 0, cloud.size, 0, Math.PI * 2);
+      this.ctx.arc(-cloud.size * 0.8, cloud.size * 0.2, cloud.size * 0.7, 0, Math.PI * 2);
+      this.ctx.arc(cloud.size * 0.8, cloud.size * 0.2, cloud.size * 0.7, 0, Math.PI * 2);
+      this.ctx.arc(-cloud.size * 1.5, cloud.size * 0.5, cloud.size * 0.5, 0, Math.PI * 2);
+      this.ctx.arc(cloud.size * 1.5, cloud.size * 0.5, cloud.size * 0.5, 0, Math.PI * 2);
+      this.ctx.fill();
+      this.ctx.restore();
+
+      if (move) {
+        cloud.x += cloud.speed;
+        if (cloud.x - cloud.size * 2 > this.width) {
+          cloud.x = -cloud.size * 2;
+          cloud.y = Math.random() * (this.height * 0.7);
+        }
+      }
+    });
+    this.ctx.globalAlpha = 1;
+  }
+
+  drawStars(move) {
+    this.ctx.fillStyle = 'white';
 
     this.stars.forEach((star) => {
       this.ctx.globalAlpha = star.opacity;
       this.ctx.beginPath();
       this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
       this.ctx.fill();
-    });
 
+      if (move) {
+        star.y -= star.speed;
+        if (star.y < 0) {
+          star.y = this.height;
+          star.x = Math.random() * this.width;
+        }
+      }
+    });
     this.ctx.globalAlpha = 1;
   }
 
@@ -109,25 +178,13 @@ class Starfield {
 
     this.ctx.clearRect(0, 0, this.width, this.height);
     const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    this.ctx.fillStyle = isLight ? 'rgba(0,0,0,0.15)' : 'white';
 
-    this.stars.forEach((star) => {
-      this.ctx.globalAlpha = star.opacity;
-      this.ctx.beginPath();
-      this.ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
-      this.ctx.fill();
+    if (isLight) {
+      this.drawClouds(true);
+    } else {
+      this.drawStars(true);
+    }
 
-      // Move star
-      star.y -= star.speed;
-
-      // Reset if off screen
-      if (star.y < 0) {
-        star.y = this.height;
-        star.x = Math.random() * this.width;
-      }
-    });
-
-    this.ctx.globalAlpha = 1;
     this.rafId = requestAnimationFrame(() => this.animate());
   }
 }
