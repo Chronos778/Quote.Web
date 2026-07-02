@@ -914,7 +914,14 @@ body:has(.dock:hover) .dock-hint-arrow {
   .nav-menu {
     flex-direction: row;
     flex: 1;
-    justify-content: space-around;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .nav-item {
+    justify-content: center;
+    padding: 12px 0;
+    flex: 1;
   }
 
   .nav-label,
@@ -928,7 +935,7 @@ body:has(.dock:hover) .dock-hint-arrow {
   }
 
   .dock {
-    bottom: calc(90px + env(safe-area-inset-bottom, 20px));
+    bottom: calc(106px + env(safe-area-inset-bottom, 20px));
     /* Dock sits above the dynamic sidebar */
     width: auto;
     left: 50%;
