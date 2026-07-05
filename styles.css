@@ -1049,7 +1049,10 @@ body:has(.dock:hover) .dock-hint-arrow {
   .dock {
     bottom: calc(106px + env(safe-area-inset-bottom, 20px));
     /* Dock sits above the dynamic sidebar */
-    width: auto;
+    width: 95%;
+    max-width: 360px;
+    justify-content: space-between;
+    gap: 4px;
     left: 50%;
     transform: translateX(-50%) translateY(0) !important;
     /* Force center on mobile and show (reset desktop translateY(100%)) */
@@ -1063,6 +1066,14 @@ body:has(.dock:hover) .dock-hint-arrow {
   .dock:hover {
     transform: translateX(-50%) translateY(0) !important;
     /* Prevent jump on tap */
+  }
+
+  .dock-btn {
+    padding: 10px 8px;
+  }
+
+  .dock-divider {
+    margin: 0;
   }
 
   /* Hide 'Fresh Quote' text on mobile to save space */
