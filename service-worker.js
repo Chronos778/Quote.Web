@@ -4,6 +4,7 @@ const ASSETS = [
   './index.html',
   './styles.css',
   './app.js',
+  './config.js',
   './manifest.json',
   './lucide.min.js',
   './assets/data/offline-quotes.json',
