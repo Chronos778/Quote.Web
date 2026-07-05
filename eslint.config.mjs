@@ -3,7 +3,7 @@ import pluginJs from '@eslint/js';
 
 export default [
   {
-    ignores: ['lucide.min.js', 'dist/**'],
+    ignores: ['public/**', 'dist/**'],
   },
   {
     languageOptions: {
