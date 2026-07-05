@@ -31,11 +31,11 @@ Quote.Web is a standalone PWA that provides seamless quote discovery with robust
 ```bash
 git clone https://github.com/Chronos778/Quote.Web.git
 cd Quote.Web
-npm ci
-npx serve .
+npm install
+npm run dev
 ```
 
-Open http://localhost:3000 in your browser.
+Open `http://localhost:5173` (or the port Vite provides) in your browser.
 
 > Note: Service workers require an HTTP origin; local file:// protocol will not work.
 
@@ -69,39 +69,35 @@ window.QUOTE_WEB_CONFIG = Object.freeze({
 ### Available Scripts
 
 ```bash
+npm run dev           # Start Vite development server
+npm run build         # Build production bundle with Vite
 npm run lint          # Run ESLint code style checks
-npm run format        # Format code with Prettier
-npm run format:check  # Verify code formatting without changes
-npm run check         # Run lint and format checks
-npm test              # Run all quality checks
+npm test              # Run Vitest test suite
+npm run test:e2e      # Run Playwright E2E tests
 ```
 
 ### Project Structure
 
-```
+```text
 quote.web/
-├── app.js             # Main application logic
+├── app.js             # Main application entry point
 ├── config.js          # Runtime configuration
 ├── service-worker.js  # Offline support and caching
 ├── index.html         # Application markup
 ├── styles.css         # Application styles
 ├── manifest.json      # PWA manifest
-├── lucide.min.js      # Icon library
-├── assets/
-│   ├── data/          # Offline quote dataset
-│   ├── fonts/         # Self-hosted web fonts
-│   ├── icons/         # Application icons
-│   └── screenshots/   # Project screenshots
-└── package.json       # Project metadata and scripts
+├── js/                # Modular logic (API, Search, Favorites, Theme)
+├── tests/             # Vitest & Playwright E2E tests
+├── assets/            # Fonts, icons, screenshots, and offline data
+└── package.json       # Dependencies & NPM scripts
 ```
 
 ## Technology Stack
 
-- **Languages:** HTML5, CSS3, JavaScript (ES6+)
-- **Architecture:** Progressive Web App with Service Worker
-- **APIs:** Web App Manifest, Service Worker API
-- **Icons:** Lucide (self-hosted)
-- **Quality Tools:** ESLint, Prettier
+- **Languages:** HTML5, CSS3, JavaScript (ES2022)
+- **Architecture:** Progressive Web App with ES Modules & Vite
+- **Testing:** Vitest & Playwright
+- **Quality Tools:** ESLint
 
 ## Browser Compatibility
 
