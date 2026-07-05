@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { showToast, vibrate } from '../js/utils.js';
+import { describe, it, expect } from 'vitest';
+import { vibrate } from '../js/utils.js';
 
 describe('Utils', () => {
   it('should not throw when vibrating in a standard environment', () => {

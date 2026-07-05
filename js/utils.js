@@ -16,8 +16,8 @@ export function vibrate(pattern = [50]) {
   if (typeof navigator !== 'undefined' && navigator.vibrate) {
     try {
       navigator.vibrate(pattern);
-    } catch (e) {
-      // Ignore vibration errors
+    } catch {
+      // Ignored
     }
   }
 }

@@ -12,7 +12,7 @@ export const FavoritesManager = {
     if (stored) {
       try {
         this.favorites = JSON.parse(stored);
-      } catch (e) {
+      } catch {
         this.favorites = [];
       }
     }

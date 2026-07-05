@@ -3,13 +3,14 @@ import pluginJs from '@eslint/js';
 
 export default [
   {
-    ignores: ['lucide.min.js'],
+    ignores: ['lucide.min.js', 'dist/**'],
   },
   {
     languageOptions: {
       globals: {
         ...globals.browser,
         ...globals.serviceworker,
+        ...globals.node,
         lucide: 'readonly',
       },
     },

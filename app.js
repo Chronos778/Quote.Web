@@ -195,15 +195,15 @@ async function shareQuote() {
         text: `"${quoteObj.text}" — ${quoteObj.author}`,
         url: url,
       });
-    } catch (e) {
-      if (e.name !== 'AbortError') console.error('Share failed', e);
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error('Share failed', err);
     }
   } else {
     // Fallback to copy link
     try {
       await navigator.clipboard.writeText(`"${quoteObj.text}" — ${quoteObj.author}\n${url}`);
       showToast('Link copied to clipboard');
-    } catch (e) {
+    } catch {
       copyQuote();
     }
   }
