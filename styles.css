@@ -255,7 +255,11 @@ canvas#starfield {
 .drawer-close:focus-visible,
 .cmd-input:focus-visible,
 .cmd-filter-input:focus-visible,
-.cmd-filter-select:focus-visible {
+.cmd-filter-select:focus-visible,
+.toolbar-btn:focus-visible,
+.template-btn:focus-visible,
+.image-gen-close:focus-visible,
+.cmd-item:focus-visible {
   outline: 2px solid rgba(var(--accent-rgb), 0.55);
   outline-offset: 2px;
 }
@@ -1255,5 +1259,37 @@ html[data-theme='light'] .nav-item.active {
   html[data-theme='light'] .sidebar {
     background: rgba(255, 255, 255, 0.98);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* --- Accessibility (a11y) --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  #starfield {
+    display: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  :root {
+    --bg-void: #000;
+    --bg-panel: #000;
+    --text-main: #fff;
+    --text-muted: #fff;
+    --border-dim: #fff;
+    --border-highlight: #fff;
+  }
+  html[data-theme='light'] {
+    --bg-void: #fff;
+    --bg-panel: #fff;
+    --text-main: #000;
+    --text-muted: #000;
+    --border-dim: #000;
+    --border-highlight: #000;
   }
 }
