@@ -1,4 +1,4 @@
-const CACHE_NAME = 'quote-web-v5';
+const CACHE_NAME = 'quote-web-v6';
 const ASSETS = [
   './',
   './index.html',
@@ -42,7 +42,11 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('fetch', (e) => {
   // API Strategy: Network Only (Let app.js handle failures with offline quotes)
-  if (e.request.url.includes('quotes-api-ruddy.vercel.app')) {
+  const isApiRequest =
+    e.request.url.includes('quotes-api-ruddy.vercel.app') ||
+    e.request.url.includes('/quotes/') ||
+    e.request.url.includes('/push/');
+  if (isApiRequest) {
     e.respondWith(
       fetch(e.request).catch(
         () =>
