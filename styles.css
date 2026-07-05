@@ -250,6 +250,10 @@ canvas#starfield {
   white-space: nowrap;
 }
 
+.mobile-top-bar {
+  display: none;
+}
+
 .brand-logo {
   min-width: 24px;
   height: 24px;
@@ -956,12 +960,11 @@ body:has(.dock:hover) .dock-hint-arrow {
   transform: translateX(-50%) translateY(0);
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .workspace {
-    padding: 20px 20px 160px 20px;
-    /* Clear the dock/sidebar */
+    padding: 80px 20px 160px 20px;
+    /* Clear top bar and dock/sidebar */
     justify-content: flex-start;
-    /* Start from top on mobile to avoid clipping */
   }
 
   .reader-container {
@@ -996,6 +999,29 @@ body:has(.dock:hover) .dock-hint-arrow {
   .brand {
     display: none;
   }
+
+  .mobile-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--bg-void);
+    border-bottom: 1px solid var(--border-dim);
+    z-index: 50;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+  }
+
+  .mobile-top-bar .brand-name {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-size: 16px;
+    opacity: 1;
+    transform: none;
+  }
+
 
   .nav-menu {
     flex-direction: row;
