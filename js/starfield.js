@@ -59,7 +59,8 @@ export class Starfield {
     this.stars = [];
     this.orbs = [];
 
-    const count = this.width < 768 ? 80 : 220;
+    const isLowEnd = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency <= 4) || this.width < 768;
+    const count = isLowEnd ? 40 : 220;
     for (let i = 0; i < count; i++) {
       this.stars.push({
         x: Math.random() * this.width,

@@ -4,6 +4,7 @@ import { PushNotificationManager } from './js/notifications.js';
 import { ImageGenerator } from './js/image-generator.js';
 import { FavoritesManager } from './js/favorites.js';
 import { HistoryManager } from './js/history.js';
+import { showToast, vibrate } from './js/utils.js';
 
 // --- Application State & Logic ---
 
@@ -295,6 +296,7 @@ async function getOfflineQuotesPool() {
 }
 
 async function fetchNewQuote() {
+  vibrate([30]);
   const requestId = ++activeQuoteRequestId;
 
   ui.text.classList.add('loading');
@@ -408,18 +410,28 @@ async function copyQuote() {
 }
 
 async function shareQuote() {
-  const text = getQuoteString();
+  const quoteObj = { text: ui.text.innerText.replace(/^"|"$/g, ''), author: ui.author.innerText };
+  const hash = '#quote=' + btoa(unescape(encodeURIComponent(JSON.stringify(quoteObj))));
+  const url = window.location.origin + window.location.pathname + hash;
+  
   if (navigator.share) {
     try {
       await navigator.share({
         title: 'Daily Quote',
-        text: text,
+        text: `"${quoteObj.text}" — ${quoteObj.author}`,
+        url: url,
       });
     } catch (e) {
       if (e.name !== 'AbortError') console.error('Share failed', e);
     }
   } else {
-    copyQuote();
+    // Fallback to copy link
+    try {
+      await navigator.clipboard.writeText(`"${quoteObj.text}" — ${quoteObj.author}\n${url}`);
+      showToast('Link copied to clipboard');
+    } catch (e) {
+      copyQuote();
+    }
   }
 }
 
@@ -442,19 +454,6 @@ function speakQuote() {
   utterance.rate = 0.9;
   
   speechSynthesis.speak(utterance);
-}
-
-function showToast(message = 'Copied to clipboard') {
-  if (toastTimeoutId !== null) {
-    clearTimeout(toastTimeoutId);
-  }
-
-  ui.toast.textContent = message;
-  ui.toast.classList.add('show');
-  toastTimeoutId = setTimeout(() => {
-    ui.toast.classList.remove('show');
-    toastTimeoutId = null;
-  }, TOAST_DURATION_MS);
 }
 
 // --- Search Logic ---
@@ -669,6 +668,29 @@ async function fetchSearchPayload(query, page, filters, { signal } = {}) {
   } catch (error) {
     const canFallbackToLegacySearch =
       error instanceof ApiError && (error.status === 404 || error.status === 405);
+    
+    if (!navigator.onLine || (error instanceof ApiError && error.status === 503) || error.message === 'Failed to fetch') {
+      const allQuotes = await fetchOfflineQuotes();
+      const q = (query || '').toLowerCase();
+      const authorQ = (filters.author || '').toLowerCase();
+      let matches = allQuotes;
+      if (q) matches = matches.filter(quote => quote.text.toLowerCase().includes(q));
+      if (authorQ) matches = matches.filter(quote => (quote.author || '').toLowerCase().includes(authorQ));
+      
+      const limit = Number(filters.limit) || 20;
+      const start = (page - 1) * limit;
+      const paginated = matches.slice(start, start + limit);
+      
+      return {
+        data: paginated,
+        pagination: {
+          page,
+          total: matches.length,
+          totalPages: Math.ceil(matches.length / limit)
+        }
+      };
+    }
+
     if (!canFallbackToLegacySearch) {
       throw error;
     }
@@ -848,6 +870,8 @@ function renderSearchResults(
     return;
   }
 
+  const fragment = document.createDocumentFragment();
+
   results.forEach((quote, index) => {
     const resultButton = document.createElement('button');
     resultButton.type = 'button';
@@ -877,7 +901,7 @@ function renderSearchResults(
       if (ui.badge) ui.badge.innerText = 'Search Result';
     };
 
-    ui.cmdResults.appendChild(resultButton);
+    fragment.appendChild(resultButton);
   });
 
   if (canLoadMore) {
@@ -891,7 +915,7 @@ function renderSearchResults(
             <span class="cmd-kbd">Enter</span>
         `;
     loadMore.onclick = () => loadMoreSearchResults();
-    ui.cmdResults.appendChild(loadMore);
+    fragment.appendChild(loadMore);
   }
 
   if (isLoading) {
@@ -900,19 +924,20 @@ function renderSearchResults(
     loading.setAttribute('role', 'status');
     loading.setAttribute('aria-live', 'polite');
     loading.textContent = 'Loading more...';
-    ui.cmdResults.appendChild(loading);
+    fragment.appendChild(loading);
   }
 
   if (errorMessage) {
-    const errorHint = document.createElement('div');
-    errorHint.className = 'cmd-item cmd-item-muted';
-    errorHint.setAttribute('role', 'status');
-    errorHint.setAttribute('aria-live', 'polite');
-    errorHint.textContent = errorMessage;
-    ui.cmdResults.appendChild(errorHint);
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'cmd-item cmd-item-error';
+    errorDiv.setAttribute('role', 'status');
+    errorDiv.setAttribute('aria-live', 'assertive');
+    errorDiv.textContent = errorMessage;
+    fragment.appendChild(errorDiv);
   }
 
-  setSelectedSearchIndex(results.length > 0 ? 0 : -1);
+  ui.cmdResults.appendChild(fragment);
+  setSelectedSearchIndex(0);
 }
 
 // --- UI Management ---
@@ -1004,7 +1029,19 @@ function registerServiceWorker() {
 
   navigator.serviceWorker
     .register(serviceWorkerPath, { scope: basePath })
-    .then(() => console.log('Service Worker Registered'))
+    .then((registration) => {
+      console.log('Service Worker Registered');
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              showToast('Update available. Refresh the page.');
+            }
+          });
+        }
+      });
+    })
     .catch((error) => console.error('Service Worker Failed', error));
 }
 
@@ -1079,10 +1116,16 @@ async function handleActionClick(event) {
       await ImageGenerator.shareImage();
       break;
     case 'toggle-favorite':
+      vibrate([40, 20, 40]);
       FavoritesManager.toggle();
       break;
     case 'history-back':
+      vibrate([30]);
       HistoryManager.back();
+      break;
+    case 'search-category':
+      ui.cmdInput.value = actionElement.dataset.category;
+      runSearch(ui.cmdInput.value);
       break;
     case 'toggle-notifications':
       await PushNotificationManager.toggle();
@@ -1190,6 +1233,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Swipe Gestures
   let touchStartX = 0;
   let touchEndX = 0;
+
+  window.addEventListener('online', () => {
+    document.getElementById('offline-banner')?.classList.remove('active');
+  });
+
+  window.addEventListener('offline', () => {
+    document.getElementById('offline-banner')?.classList.add('active');
+  });
 
   document.querySelector('.workspace').addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].screenX;
@@ -1300,6 +1351,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   renderSearchResults([]);
 
-  // Initial Fetch
+  // Initial Fetch or Deep Link
+  const hash = window.location.hash;
+  if (hash.startsWith('#quote=')) {
+    try {
+      const base64 = hash.replace('#quote=', '');
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))));
+      if (decoded.text) {
+        const requestId = ++activeQuoteRequestId;
+        renderQuote(decoded, requestId);
+        return;
+      }
+    } catch (e) {
+      console.error('Invalid quote deep link', e);
+      window.location.hash = '';
+    }
+  }
+
   fetchQOD();
 });

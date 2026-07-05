@@ -47,16 +47,38 @@ self.addEventListener('fetch', (e) => {
     e.request.url.includes('/quotes/') ||
     e.request.url.includes('/push/');
   if (isApiRequest) {
-    e.respondWith(
-      fetch(e.request).catch(
-        () =>
-          new Response(JSON.stringify({ success: false, error: 'Offline' }), {
-            status: 503,
-            statusText: 'Offline',
-            headers: { 'Content-Type': 'application/json' },
-          })
-      )
-    );
+    if (e.request.method === 'GET') {
+      e.respondWith(
+        caches.open('quote-web-api-cache-v1').then((cache) => {
+          return cache.match(e.request).then((cachedResponse) => {
+            const fetchPromise = fetch(e.request).then((networkResponse) => {
+              if (networkResponse && networkResponse.status === 200) {
+                cache.put(e.request, networkResponse.clone());
+              }
+              return networkResponse;
+            }).catch(() => {
+              return new Response(JSON.stringify({ success: false, error: 'Offline' }), {
+                status: 503,
+                statusText: 'Offline',
+                headers: { 'Content-Type': 'application/json' },
+              });
+            });
+            return cachedResponse || fetchPromise;
+          });
+        })
+      );
+    } else {
+      e.respondWith(
+        fetch(e.request).catch(
+          () =>
+            new Response(JSON.stringify({ success: false, error: 'Offline' }), {
+              status: 503,
+              statusText: 'Offline',
+              headers: { 'Content-Type': 'application/json' },
+            })
+        )
+      );
+    }
     return;
   }
 
