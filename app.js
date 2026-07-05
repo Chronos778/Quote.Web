@@ -526,6 +526,12 @@ function renderQuote(data, requestId = activeQuoteRequestId) {
     ui.text.innerText = `"${data.text}"`;
     ui.author.innerText = data.author || 'Unknown';
 
+    // Announce to screen readers
+    const announcer = document.getElementById('quote-announcer');
+    if (announcer) {
+      announcer.textContent = `${data.text} by ${data.author || 'Unknown'}`;
+    }
+
     // Responsive Font Sizing
     const len = data.text.length;
     if (len < 50) {
