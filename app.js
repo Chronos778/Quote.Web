@@ -1239,11 +1239,14 @@ const PushNotificationManager = {
 
       if (subscription) {
         await subscription.unsubscribe();
-        await fetch(`${API_BASE}/push/unsubscribe`, {
+        const unsubResponse = await fetch(`${API_BASE}/push/unsubscribe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ endpoint: subscription.endpoint }),
         });
+        if (!unsubResponse.ok) {
+          console.warn('Server rejected push unsubscribe', unsubResponse.status);
+        }
         this.updateBellUI(false);
         showToast('Notifications disabled');
       } else {
@@ -1264,11 +1267,14 @@ const PushNotificationManager = {
           applicationServerKey: this.urlBase64ToUint8Array(publicKey),
         });
 
-        await fetch(`${API_BASE}/push/subscribe`, {
+        const subResponse = await fetch(`${API_BASE}/push/subscribe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ subscription }),
         });
+        if (!subResponse.ok) {
+          console.warn('Server rejected push subscribe', subResponse.status);
+        }
 
         this.updateBellUI(true);
         showToast('Subscribed to daily quotes');
