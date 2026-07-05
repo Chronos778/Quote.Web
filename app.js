@@ -549,8 +549,12 @@ function renderQuote(data, requestId = activeQuoteRequestId) {
   }, QUOTE_RENDER_DELAY_MS);
 }
 
+function getQuoteString() {
+  return ui.text.innerText + ' — ' + ui.author.innerText;
+}
+
 async function copyQuote() {
-  const textToCopy = ui.text.innerText + ' — ' + ui.author.innerText;
+  const textToCopy = getQuoteString();
 
   try {
     if (navigator.clipboard?.writeText) {
@@ -589,7 +593,7 @@ async function copyQuote() {
 async function shareQuote() {
   const payload = {
     title: 'Daily Inspiration',
-    text: ui.text.innerText + ' — ' + ui.author.innerText,
+    text: getQuoteString(),
     url: window.location.href,
   };
 
@@ -1157,9 +1161,19 @@ function closeAllOverlays() {
 const ThemeManager = {
   init() {
     this.theme = localStorage.getItem('theme');
+    
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     if (!this.theme) {
-      this.theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+      this.theme = mediaQuery.matches ? 'dark' : 'light';
     }
+    
+    mediaQuery.addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        this.theme = e.matches ? 'dark' : 'light';
+        this.applyTheme(this.theme);
+      }
+    });
+
     this.applyTheme(this.theme);
   },
 
@@ -1481,7 +1495,7 @@ const ImageGenerator = {
         await navigator.share({
           files: [file],
           title: 'Daily Inspiration',
-          text: ui.text.innerText + ' — ' + ui.author.innerText,
+          text: getQuoteString(),
         });
         showToast('Shared successfully');
       } catch (err) {
