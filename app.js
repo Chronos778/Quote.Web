@@ -3,6 +3,7 @@ import { Starfield } from './js/starfield.js';
 import { PushNotificationManager } from './js/notifications.js';
 import { ImageGenerator } from './js/image-generator.js';
 import { FavoritesManager } from './js/favorites.js';
+import { HistoryManager } from './js/history.js';
 
 // --- Application State & Logic ---
 
@@ -334,6 +335,7 @@ async function renderOfflineQuote(label = 'Offline Inspiration', requestId = act
 }
 
 function renderQuote(data, requestId = activeQuoteRequestId) {
+  HistoryManager.add(data.text, data.author || 'Unknown');
   setTimeout(() => {
     if (requestId !== activeQuoteRequestId) return;
 
@@ -1065,6 +1067,9 @@ async function handleActionClick(event) {
     case 'toggle-favorite':
       FavoritesManager.toggle();
       break;
+    case 'history-back':
+      HistoryManager.back();
+      break;
     case 'toggle-notifications':
       await PushNotificationManager.toggle();
       break;
@@ -1128,6 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
   PushNotificationManager.init({ apiBase: API_BASE, showToast });
   ImageGenerator.init({ ui, closeAllOverlays, showToast });
   FavoritesManager.init({ ui, showToast });
+  HistoryManager.init({ renderQuote });
 
   // Event Listeners
   document.addEventListener('keydown', (e) => {
