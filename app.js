@@ -2,6 +2,8 @@ import { ThemeManager } from './js/theme.js';
 import { Starfield } from './js/starfield.js';
 import { PushNotificationManager } from './js/notifications.js';
 import { ImageGenerator } from './js/image-generator.js';
+import { FavoritesManager } from './js/favorites.js';
+import { HistoryManager } from './js/history.js';
 import { showToast, vibrate } from './js/utils.js';
 import { API_BASE, ApiError, fetchApiJson, normalizeQuote, getOfflineQuotesPool } from './js/api.js';
 import { SearchManager } from './js/search.js';
@@ -374,7 +376,13 @@ async function handleActionClick(event) {
       break;
     case 'open-drawer': {
       const drawerType = actionElement.dataset.drawer;
-      if (drawerType && content[drawerType]) {
+      if (drawerType === 'favorites') {
+        ui.drawer.dataset.currentView = 'favorites';
+        FavoritesManager.renderList();
+        ui.drawer.classList.add('active');
+        ui.backdrop.classList.add('active');
+        setActiveNav(actionElement.dataset.nav || 'favorites');
+      } else if (drawerType && content[drawerType]) {
         openDrawer(drawerType);
       }
       break;
@@ -430,15 +438,16 @@ async function handleActionClick(event) {
     case 'close-overlays':
       closeAllOverlays();
       break;
-    case 'open-drawer':
-      if (actionElement.dataset.drawer === 'favorites') {
-        ui.drawer.dataset.currentView = 'favorites';
-        FavoritesManager.renderList();
+    case 'render-favorite': {
+      const index = parseInt(actionElement.dataset.index, 10);
+      const fav = FavoritesManager.favorites[index];
+      if (fav) {
+        const requestId = ++activeQuoteRequestId;
+        renderQuote(fav, requestId);
+        closeDrawer();
       }
-      ui.drawer.classList.add('active');
-      ui.backdrop.classList.add('active');
-      setActiveNav(actionElement.dataset.nav);
       break;
+    }
     case 'close-drawer':
       closeDrawer();
       break;

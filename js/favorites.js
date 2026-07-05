@@ -78,8 +78,8 @@ export const FavoritesManager = {
       return;
     }
 
-    ui.drawerBody.innerHTML = this.favorites.map(f => `
-      <div class="cmd-item" tabindex="0">
+    ui.drawerBody.innerHTML = this.favorites.map((f, i) => `
+      <div class="cmd-item" tabindex="0" data-action="render-favorite" data-index="${i}">
         <div class="cmd-item-content">
           <div class="cmd-item-text">"${f.text}"</div>
           <div class="cmd-item-author">${f.author}</div>
