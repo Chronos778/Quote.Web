@@ -126,6 +126,17 @@
         <button
           type="button"
           class="nav-item"
+          data-nav="favorites"
+          data-action="open-drawer"
+          data-drawer="favorites"
+          aria-label="Favorites"
+        >
+          <i data-lucide="heart" class="nav-icon"></i>
+          <span class="nav-label">Favorites</span>
+        </button>
+        <button
+          type="button"
+          class="nav-item"
           data-nav="about"
           data-action="open-drawer"
           data-drawer="about"
@@ -187,6 +198,9 @@
         <i data-lucide="chevron-up" class="dock-hint-arrow"></i>
       </div>
       <div class="dock">
+        <button type="button" class="dock-btn" data-action="toggle-favorite" aria-label="Toggle Favorite" id="btn-favorite">
+          <i data-lucide="heart" size="16" id="icon-favorite"></i>
+        </button>
         <button type="button" class="dock-btn" data-action="copy-quote" aria-label="Copy Quote">
           <i data-lucide="copy" size="16"></i>
         </button>

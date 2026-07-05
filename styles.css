@@ -1043,6 +1043,10 @@ body:has(.dock:hover) .dock-hint-arrow {
   color: var(--text-main);
 }
 
+svg.filled {
+  fill: currentColor;
+}
+
 /* Image Generator Modal */
 .image-gen-modal {
   position: fixed;

@@ -2,6 +2,7 @@ import { ThemeManager } from './js/theme.js';
 import { Starfield } from './js/starfield.js';
 import { PushNotificationManager } from './js/notifications.js';
 import { ImageGenerator } from './js/image-generator.js';
+import { FavoritesManager } from './js/favorites.js';
 
 // --- Application State & Logic ---
 
@@ -359,6 +360,7 @@ function renderQuote(data, requestId = activeQuoteRequestId) {
 
     ui.text.classList.remove('loading');
     ui.author.parentElement.classList.remove('loading');
+    FavoritesManager.updateButtonState();
   }, QUOTE_RENDER_DELAY_MS);
 }
 
@@ -1060,11 +1062,23 @@ async function handleActionClick(event) {
     case 'share-image-file':
       await ImageGenerator.shareImage();
       break;
+    case 'toggle-favorite':
+      FavoritesManager.toggle();
+      break;
     case 'toggle-notifications':
       await PushNotificationManager.toggle();
       break;
     case 'close-overlays':
       closeAllOverlays();
+      break;
+    case 'open-drawer':
+      if (actionElement.dataset.drawer === 'favorites') {
+        ui.drawer.dataset.currentView = 'favorites';
+        FavoritesManager.renderList();
+      }
+      ui.drawer.classList.add('active');
+      ui.backdrop.classList.add('active');
+      setActiveNav(actionElement.dataset.nav);
       break;
     case 'close-drawer':
       closeDrawer();
@@ -1113,6 +1127,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ThemeManager.init();
   PushNotificationManager.init({ apiBase: API_BASE, showToast });
   ImageGenerator.init({ ui, closeAllOverlays, showToast });
+  FavoritesManager.init({ ui, showToast });
 
   // Event Listeners
   document.addEventListener('keydown', (e) => {
