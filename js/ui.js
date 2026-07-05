@@ -1,0 +1,17 @@
+export const ui = {
+  text: document.getElementById('quote-text'),
+  author: document.getElementById('quote-author'),
+  badge: document.querySelector('.quote-badge'),
+  backdrop: document.getElementById('backdrop'),
+  palette: document.getElementById('cmd-palette'),
+  drawer: document.getElementById('side-drawer'),
+  drawerBody: document.getElementById('drawer-body'),
+  toast: document.getElementById('toast'),
+  cmdInput: document.querySelector('.cmd-input'),
+  cmdResults: document.querySelector('.cmd-results'),
+  cmdMeta: document.getElementById('cmd-meta'),
+  cmdAuthor: document.getElementById('cmd-author'),
+  cmdSort: document.getElementById('cmd-sort'),
+  cmdOrder: document.getElementById('cmd-order'),
+  cmdLimit: document.getElementById('cmd-limit'),
+};
