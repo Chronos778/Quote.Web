@@ -231,7 +231,7 @@ export const SearchManager = {
   
       if (requestId !== this.activeSearchRequestId) return;
   
-      console.error('Search failed', error);
+      console.warn('Search failed', error);
   
       const message = getSearchErrorMessage(error);
   

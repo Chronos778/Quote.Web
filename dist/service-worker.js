@@ -148,7 +148,7 @@ self.addEventListener('push', (event) => {
       })
     );
   } catch (err) {
-    console.error('Failed to parse push payload', err);
+    console.warn('Failed to parse push payload', err);
   }
 });
 

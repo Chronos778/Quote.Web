@@ -128,8 +128,8 @@ export const ImageGenerator = {
       }
     }
 
-    const quoteText = ui.text.innerText.replace(/^"|"$/g, '');
-    const quoteAuthor = ui.author.innerText;
+    const quoteText = ui.text.textContent.replace(/^"|"$/g, '');
+    const quoteAuthor = ui.author.textContent;
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -208,7 +208,7 @@ export const ImageGenerator = {
         showToast('Image copy not supported by your browser');
       }
     } catch (e) {
-      console.error('Image copy failed', e);
+      console.warn('Image copy failed', e);
       showToast('Failed to copy image');
     }
   },
@@ -224,7 +224,7 @@ export const ImageGenerator = {
           text: 'Check out this quote!',
         });
       } catch (e) {
-        if (e.name !== 'AbortError') console.error('Share failed', e);
+        if (e.name !== 'AbortError') console.warn('Share failed', e);
       }
     } else {
       showToast('Native sharing not supported');

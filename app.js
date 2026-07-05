@@ -40,7 +40,7 @@ async function fetchQOD() {
 
   ui.text.classList.add('loading');
   ui.author.parentElement.classList.add('loading');
-  if (ui.badge) ui.badge.innerText = 'Quote of the Day';
+  if (ui.badge) ui.badge.textContent = 'Quote of the Day';
 
   try {
     const json = await fetchApiJson('/quotes/qod');
@@ -55,7 +55,7 @@ async function fetchQOD() {
     if (requestId !== activeQuoteRequestId) return;
     await fetchNewQuote();
   } catch (error) {
-    console.error('Failed to fetch QOD', error);
+    console.warn('Failed to fetch QOD', error);
 
     if (error instanceof ApiError && error.status === 429) {
       await renderOfflineQuote('Rate limited · Offline', requestId);
@@ -75,7 +75,7 @@ async function fetchNewQuote() {
 
   ui.text.classList.add('loading');
   ui.author.parentElement.classList.add('loading');
-  if (ui.badge) ui.badge.innerText = 'Random Inspiration';
+  if (ui.badge) ui.badge.textContent = 'Random Inspiration';
 
   try {
     const json = await fetchApiJson('/quotes/random');
@@ -107,7 +107,7 @@ async function renderOfflineQuote(label = 'Offline Inspiration', requestId = act
     author: 'Quote.Web',
   };
   renderQuote(randomQuote, requestId);
-  if (ui.badge) ui.badge.innerText = label;
+  if (ui.badge) ui.badge.textContent = label;
 }
 
 function renderQuote(data, requestId = activeQuoteRequestId) {
@@ -115,8 +115,8 @@ function renderQuote(data, requestId = activeQuoteRequestId) {
   setTimeout(() => {
     if (requestId !== activeQuoteRequestId) return;
 
-    ui.text.innerText = `"${data.text}"`;
-    ui.author.innerText = data.author || 'Unknown';
+    ui.text.textContent = `"${data.text}"`;
+    ui.author.textContent = data.author || 'Unknown';
 
     // Announce to screen readers
     const announcer = document.getElementById('quote-announcer');
@@ -143,7 +143,7 @@ function renderQuote(data, requestId = activeQuoteRequestId) {
 }
 
 function getQuoteString() {
-  return ui.text.innerText + ' — ' + ui.author.innerText;
+  return ui.text.textContent + ' — ' + ui.author.textContent;
 }
 
 async function copyQuote() {
@@ -177,14 +177,14 @@ async function copyQuote() {
     showToast('Copied to clipboard');
     return true;
   } catch (error) {
-    console.error('Copy failed', error);
+    console.warn('Copy failed', error);
     showToast('Copy failed');
     return false;
   }
 }
 
 async function shareQuote() {
-  const quoteObj = { text: ui.text.innerText.replace(/^"|"$/g, ''), author: ui.author.innerText };
+  const quoteObj = { text: ui.text.textContent.replace(/^"|"$/g, ''), author: ui.author.textContent };
   const hash = '#quote=' + btoa(unescape(encodeURIComponent(JSON.stringify(quoteObj))));
   const url = window.location.origin + window.location.pathname + hash;
   
@@ -196,7 +196,7 @@ async function shareQuote() {
         url: url,
       });
     } catch (err) {
-      if (err.name !== 'AbortError') console.error('Share failed', err);
+      if (err.name !== 'AbortError') console.warn('Share failed', err);
     }
   } else {
     // Fallback to copy link
@@ -220,8 +220,8 @@ function speakQuote() {
     return;
   }
 
-  const quote = ui.text.innerText.replace(/^"|"$/g, '');
-  const author = ui.author.innerText;
+  const quote = ui.text.textContent.replace(/^"|"$/g, '');
+  const author = ui.author.textContent;
   
   const utterance = new SpeechSynthesisUtterance(`${quote}. By ${author}.`);
   utterance.lang = 'en-US';
@@ -341,12 +341,12 @@ function registerServiceWorker() {
         }
       });
     })
-    .catch((error) => console.error('Service Worker Failed', error));
+    .catch((error) => console.warn('Service Worker Failed', error));
 }
 
 function registerGlobalErrorHandlers() {
   window.addEventListener('error', (event) => {
-    console.error('Unhandled runtime error', {
+    console.warn('Unhandled runtime error', {
       message: event.message,
       filename: event.filename,
       lineno: event.lineno,
@@ -356,7 +356,7 @@ function registerGlobalErrorHandlers() {
   });
 
   window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled promise rejection', event.reason);
+    console.warn('Unhandled promise rejection', event.reason);
   });
 }
 
@@ -503,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const requestId = ++activeQuoteRequestId;
       renderQuote(quote, requestId);
       closeAllOverlays();
-      if (ui.badge) ui.badge.innerText = 'Search Result';
+      if (ui.badge) ui.badge.textContent = 'Search Result';
     },
     onFetchNewQuote: async () => {
       await fetchNewQuote();
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
     } catch (e) {
-      console.error('Invalid quote deep link', e);
+      console.warn('Invalid quote deep link', e);
       window.location.hash = '';
     }
   }

@@ -23,8 +23,8 @@ export const FavoritesManager = {
 
   getCurrentQuoteObj() {
     return {
-      text: ui.text.innerText.replace(/^"|"$/g, ''),
-      author: ui.author.innerText
+      text: ui.text.textContent.replace(/^"|"$/g, ''),
+      author: ui.author.textContent
     };
   },
 

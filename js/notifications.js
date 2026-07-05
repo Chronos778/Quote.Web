@@ -88,7 +88,7 @@ export const PushNotificationManager = {
         showToastFn('Subscribed to daily quotes');
       }
     } catch (error) {
-      console.error('Push toggle failed', error);
+      console.warn('Push toggle failed', error);
       showToastFn('Failed to toggle notifications');
       this.updateBellUI(false);
     }
