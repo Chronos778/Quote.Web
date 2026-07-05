@@ -408,29 +408,40 @@ async function copyQuote() {
 }
 
 async function shareQuote() {
-  const payload = {
-    title: 'Daily Inspiration',
-    text: getQuoteString(),
-    url: window.location.href,
-  };
-
+  const text = getQuoteString();
   if (navigator.share) {
     try {
-      await navigator.share(payload);
-      showToast('Shared');
-      return;
-    } catch (error) {
-      if (error?.name === 'AbortError') {
-        return;
-      }
-      console.error('Share failed', error);
-      showToast('Share failed, copied instead');
-      await copyQuote();
-      return;
+      await navigator.share({
+        title: 'Daily Quote',
+        text: text,
+      });
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error('Share failed', e);
     }
+  } else {
+    copyQuote();
+  }
+}
+
+function speakQuote() {
+  if (!('speechSynthesis' in window)) {
+    showToast('Text-to-speech not supported');
+    return;
+  }
+  
+  if (speechSynthesis.speaking) {
+    speechSynthesis.cancel();
+    return;
   }
 
-  await copyQuote();
+  const quote = ui.text.innerText.replace(/^"|"$/g, '');
+  const author = ui.author.innerText;
+  
+  const utterance = new SpeechSynthesisUtterance(`${quote}. By ${author}.`);
+  utterance.lang = 'en-US';
+  utterance.rate = 0.9;
+  
+  speechSynthesis.speak(utterance);
 }
 
 function showToast(message = 'Copied to clipboard') {
@@ -1035,7 +1046,10 @@ async function handleActionClick(event) {
       break;
     }
     case 'copy-quote':
-      await copyQuote();
+      copyQuote();
+      break;
+    case 'speak-quote':
+      speakQuote();
       break;
     case 'share-quote':
       await shareQuote();
@@ -1137,12 +1151,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Event Listeners
   document.addEventListener('keydown', (e) => {
+    // If user is in an input field, do not trigger global shortcuts
+    const isInputActive = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+    
+    // Command Palette Toggle (Ctrl+K or Cmd+K)
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
-      toggleCommandPalette();
+      document.querySelector('[data-action="toggle-search"]')?.click();
+      return;
     }
-    if (e.key === 'Escape') closeAllOverlays();
+
+    if (ui.palette.classList.contains('active')) {
+      return;
+    }
+
+    if (isInputActive) return;
+
+    if (e.key === ' ' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      fetchNewQuote();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      HistoryManager.back();
+    } else if (e.key.toLowerCase() === 'c') {
+      e.preventDefault();
+      copyQuote();
+    } else if (e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      speakQuote();
+    } else if (e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      FavoritesManager.toggle();
+    } else if (e.key === 'Escape') {
+      closeAllOverlays();
+    }
   });
+
+  // Swipe Gestures
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  document.querySelector('.workspace').addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  document.querySelector('.workspace').addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
+  function handleSwipe() {
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) > 50) { // Threshold
+      if (diff > 0) {
+        // Swiped left -> Next quote
+        fetchNewQuote();
+      } else {
+        // Swiped right -> Previous quote
+        HistoryManager.back();
+      }
+    }
+  }
 
   document.addEventListener('click', (e) => {
     handleActionClick(e);
