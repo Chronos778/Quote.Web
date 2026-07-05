@@ -1114,6 +1114,7 @@ function toggleCommandPalette() {
 }
 
 function openDrawer(type) {
+  if (!content[type]) return;
   closeAllOverlays();
   setActiveNav(type);
   ui.drawerBody.innerHTML = content[type];
