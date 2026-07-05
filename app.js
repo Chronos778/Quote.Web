@@ -1402,8 +1402,8 @@ const ImageGenerator = {
 
     let fontSize = 80;
     if (quoteText.length < 50) fontSize = 100;
-    else if (quoteText.length > 150) fontSize = 64;
     else if (quoteText.length > 250) fontSize = 52;
+    else if (quoteText.length > 150) fontSize = 64;
 
     ctx.font = `400 ${fontSize}px "Fraunces", serif`;
     ctx.fillStyle = tpl.text;
