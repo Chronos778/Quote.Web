@@ -1329,6 +1329,12 @@ const ImageGenerator = {
   },
 
   close() {
+    const img = document.getElementById('image-gen-preview');
+    if (img?.src?.startsWith('blob:')) {
+      URL.revokeObjectURL(img.src);
+      img.src = '';
+    }
+    this.currentBlob = null;
     document.getElementById('image-gen-modal').classList.remove('active');
     ui.backdrop.classList.remove('active');
   },
