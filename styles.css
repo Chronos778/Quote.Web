@@ -98,8 +98,8 @@
 
   --accent-primary: #8b5cf6;
   --accent-rgb: 139, 92, 246;
-  --accent-light: var(--accent-light);
-  --accent-lighter: var(--accent-lighter);
+  --accent-light: #a78bfa;
+  --accent-lighter: #c4b5fd;
   --accent-glow: rgba(var(--accent-rgb), 0.15);
 
   --font-display: 'Fraunces', serif;
