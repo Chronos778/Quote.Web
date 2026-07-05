@@ -33,7 +33,7 @@ export const HistoryManager = {
       this.currentIndex--;
       this.isNavigating = true;
       const prevQuote = this.history[this.currentIndex];
-      renderQuote(prevQuote, Date.now()); // Date.now() acts as requestId to preempt current loading
+      renderQuote(prevQuote); // Uses the wrapper to increment activeQuoteRequestId and preempt current loading
       this.isNavigating = false;
     }
     this.updateButtonState();

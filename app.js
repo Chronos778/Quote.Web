@@ -496,7 +496,12 @@ document.addEventListener('DOMContentLoaded', () => {
   PushNotificationManager.init({ apiBase: API_BASE, showToast });
   ImageGenerator.init({ ui, closeAllOverlays, showToast });
   FavoritesManager.init({ ui, showToast });
-  HistoryManager.init({ renderQuote });
+  HistoryManager.init({
+    renderQuote: (quote) => {
+      const requestId = ++activeQuoteRequestId;
+      renderQuote(quote, requestId);
+    }
+  });
   SearchManager.init({
     ui,
     onSelectQuote: (quote) => {
