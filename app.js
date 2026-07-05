@@ -1169,13 +1169,8 @@ const ThemeManager = {
     const sunIcon = document.querySelector('.icon-sun');
     const moonIcon = document.querySelector('.icon-moon');
     if (sunIcon && moonIcon) {
-      if (theme === 'light') {
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-      } else {
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
-      }
+      sunIcon.classList.toggle('hidden', theme === 'light');
+      moonIcon.classList.toggle('hidden', theme !== 'light');
     }
 
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -1207,13 +1202,7 @@ const PushNotificationManager = {
     const icon = document.getElementById('bell-icon');
     const label = document.getElementById('bell-label');
     if (icon) {
-      if (isSubscribed) {
-        icon.classList.add('filled');
-        icon.style.fill = 'currentColor';
-      } else {
-        icon.classList.remove('filled');
-        icon.style.fill = 'none';
-      }
+      icon.classList.toggle('filled', isSubscribed);
     }
     if (label) {
       label.textContent = isSubscribed ? 'Subscribed' : 'Daily Quote';

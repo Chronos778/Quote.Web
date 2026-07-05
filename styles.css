@@ -116,6 +116,14 @@
   box-sizing: border-box;
 }
 
+.hidden {
+  display: none !important;
+}
+
+#bell-icon.filled {
+  fill: currentColor;
+}
+
 body {
   background-color: var(--bg-void);
   color: var(--text-main);
