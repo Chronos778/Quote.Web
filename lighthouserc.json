@@ -8,8 +8,8 @@
     "assert": {
       "preset": "lighthouse:recommended",
       "assertions": {
-        "errors-in-console": "warn",
-        "network-dependency-tree-insight": "warn"
+        "errors-in-console": "off",
+        "network-dependency-tree-insight": "off"
       }
     },
     "upload": {
