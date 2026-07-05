@@ -14,8 +14,8 @@
     "type": "git",
     "url": "git+https://github.com/Chronos778/quote.web.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["quotes", "pwa", "inspiration", "vanilla-js"],
+  "author": "Chronos778",
   "license": "MIT",
   "type": "commonjs",
   "engines": {
