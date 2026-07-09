@@ -56,8 +56,8 @@ async function fetchQOD() {
         return;
       }
     }
-  } catch (e) {
-    // Ignore cache read errors
+  } catch (err) {
+    console.debug('Cache read error:', err);
   }
 
   try {
@@ -67,7 +67,9 @@ async function fetchQOD() {
     if (json?.success && quote) {
       try {
         localStorage.setItem(cacheKey, JSON.stringify(quote));
-      } catch (e) {}
+      } catch (err) {
+        console.debug('Cache write error:', err);
+      }
       
       if (requestId !== activeQuoteRequestId) return;
       renderQuote(quote, requestId);
