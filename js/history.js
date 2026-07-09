@@ -39,13 +39,40 @@ export const HistoryManager = {
     this.updateButtonState();
   },
 
+  forward() {
+    if (this.currentIndex < this.history.length - 1) {
+      this.currentIndex++;
+      this.isNavigating = true;
+      const nextQuote = this.history[this.currentIndex];
+      renderQuote(nextQuote);
+      this.isNavigating = false;
+    }
+    this.updateButtonState();
+  },
+
   updateButtonState() {
-    const btn = document.getElementById('btn-back');
-    if (btn) {
+    const btnBack = document.getElementById('btn-back');
+    if (btnBack) {
       const canGoBack = this.currentIndex > 0;
-      btn.disabled = !canGoBack;
-      btn.style.opacity = canGoBack ? '1' : '0.5';
-      btn.style.pointerEvents = canGoBack ? 'auto' : 'none';
+      btnBack.disabled = !canGoBack;
+      btnBack.style.opacity = canGoBack ? '1' : '0.5';
+      btnBack.style.pointerEvents = canGoBack ? 'auto' : 'none';
+    }
+
+    const btnFresh = document.querySelector('.dock-btn.primary');
+    if (btnFresh) {
+      const canGoForward = this.currentIndex < this.history.length - 1;
+      const span = btnFresh.querySelector('span');
+      
+      if (canGoForward) {
+        btnFresh.setAttribute('data-action', 'history-forward');
+        btnFresh.setAttribute('aria-label', 'Next Quote');
+        if (span) span.textContent = 'Forward';
+      } else {
+        btnFresh.setAttribute('data-action', 'fresh-quote');
+        btnFresh.setAttribute('aria-label', 'Get Fresh Quote');
+        if (span) span.textContent = 'Fresh Quote';
+      }
     }
   }
 };

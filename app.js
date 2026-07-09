@@ -42,11 +42,33 @@ async function fetchQOD() {
   ui.author.parentElement.classList.add('loading');
   if (ui.badge) ui.badge.textContent = 'Quote of the Day';
 
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const cacheKey = `qod_${dateStr}`;
+  
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.text) {
+        if (requestId !== activeQuoteRequestId) return;
+        renderQuote(parsed, requestId);
+        return;
+      }
+    }
+  } catch (e) {
+    // Ignore cache read errors
+  }
+
   try {
     const json = await fetchApiJson('/quotes/qod');
     const quote = normalizeQuote(json?.data);
 
     if (json?.success && quote) {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(quote));
+      } catch (e) {}
+      
       if (requestId !== activeQuoteRequestId) return;
       renderQuote(quote, requestId);
       return;
@@ -427,6 +449,10 @@ async function handleActionClick(event) {
     case 'history-back':
       vibrate([30]);
       HistoryManager.back();
+      break;
+    case 'history-forward':
+      vibrate([30]);
+      HistoryManager.forward();
       break;
     case 'search-category':
       ui.cmdInput.value = actionElement.dataset.category;
