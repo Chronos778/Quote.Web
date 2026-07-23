@@ -78,8 +78,8 @@
     <!-- Icons -->
     <script src="lucide.min.js" defer></script>
 
-    <!-- Styles (Non-render-blocking via media trick) -->
-    <link rel="stylesheet" href="styles.css" media="print" onload="this.media='all'" />
+    <!-- Styles (Non-render-blocking via media trick, using rAF to prevent forced reflow) -->
+    <link rel="stylesheet" href="styles.css" media="print" onload="window.requestAnimationFrame(() => this.media='all')" />
 
     <!-- Runtime config -->
     <script src="config.js" defer></script>
