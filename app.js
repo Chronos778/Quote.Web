@@ -43,8 +43,20 @@ async function fetchQOD() {
   if (ui.badge) ui.badge.textContent = 'Quote of the Day';
 
   const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
+  const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const cacheKey = `qod_${dateStr}`;
+
+  // Purge stale QOD cache entries from previous days
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('qod_') && key !== cacheKey) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch (err) {
+    console.debug('QOD cache cleanup error:', err);
+  }
   
   try {
     const cached = localStorage.getItem(cacheKey);
