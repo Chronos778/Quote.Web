@@ -36,7 +36,10 @@ export class Starfield {
       return;
     }
 
-    this.start();
+    // Delay start to allow main thread to become idle for LCP/TTI
+    setTimeout(() => {
+      this.start();
+    }, 1000);
   }
 
   resize() {
