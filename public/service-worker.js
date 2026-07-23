@@ -1,4 +1,5 @@
-const CACHE_NAME = 'quote-web-v6';
+const CACHE_NAME = 'quote-web-v7';
+const API_CACHE_NAME = 'quote-web-api-cache-v1';
 const ASSETS = [
   './',
   './index.html',
@@ -48,23 +49,29 @@ self.addEventListener('fetch', (e) => {
     e.request.url.includes('/push/');
   if (isApiRequest) {
     if (e.request.method === 'GET') {
+      // Network-First: always try the network for fresh data,
+      // fall back to cache only when offline.
       e.respondWith(
-        caches.open('quote-web-api-cache-v1').then((cache) => {
-          return cache.match(e.request).then((cachedResponse) => {
-            const fetchPromise = fetch(e.request).then((networkResponse) => {
+        caches.open(API_CACHE_NAME).then((cache) => {
+          return fetch(e.request)
+            .then((networkResponse) => {
               if (networkResponse && networkResponse.status === 200) {
                 cache.put(e.request, networkResponse.clone());
               }
               return networkResponse;
-            }).catch(() => {
-              return new Response(JSON.stringify({ success: false, error: 'Offline' }), {
-                status: 503,
-                statusText: 'Offline',
-                headers: { 'Content-Type': 'application/json' },
+            })
+            .catch(() => {
+              return cache.match(e.request).then((cachedResponse) => {
+                return (
+                  cachedResponse ||
+                  new Response(JSON.stringify({ success: false, error: 'Offline' }), {
+                    status: 503,
+                    statusText: 'Offline',
+                    headers: { 'Content-Type': 'application/json' },
+                  })
+                );
               });
             });
-            return cachedResponse || fetchPromise;
-          });
         })
       );
     } else {
@@ -122,9 +129,10 @@ self.addEventListener('fetch', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keyList) => {
+      const keepCaches = new Set([CACHE_NAME, API_CACHE_NAME]);
       return Promise.all(
         keyList.map((key) => {
-          if (key !== CACHE_NAME) {
+          if (!keepCaches.has(key)) {
             return caches.delete(key);
           }
         })
