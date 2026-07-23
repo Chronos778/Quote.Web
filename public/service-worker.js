@@ -144,15 +144,17 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('push', (event) => {
   if (!event.data) return;
 
+  const scope = self.registration.scope;
+
   try {
     const data = event.data.json();
     event.waitUntil(
       self.registration.showNotification(data.title || 'Quote.Web', {
         body: `"${data.body}" — ${data.author}`,
-        icon: data.icon || '/assets/icons/icon-192.png',
-        badge: data.badge || '/assets/icons/icon-192.png',
+        icon: data.icon || new URL('assets/icons/icon-192.png', scope).href,
+        badge: data.badge || new URL('assets/icons/icon-192.png', scope).href,
         tag: data.tag || 'quote-web-notification',
-        data: { url: data.url || '/' },
+        data: { url: data.url || scope },
       })
     );
   } catch (err) {
