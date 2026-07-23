@@ -521,8 +521,9 @@ document.addEventListener('DOMContentLoaded', () => {
   registerServiceWorker();
   registerGlobalErrorHandlers();
 
-  // Defer heavy paint/layout work to avoid forced reflow during init
-  requestAnimationFrame(() => {
+  // Defer heavy paint/layout work to avoid forced reflow and main-thread blocking during init
+  // Use setTimeout to ensure it runs *after* the first paint, not before it (like RAF does)
+  setTimeout(() => {
     // Icons
     if (window.lucide) {
       lucide.createIcons();
@@ -532,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Starfield
     window.starfieldInstance = new Starfield('starfield');
-  });
+  }, 0);
   setActiveNav('discover');
 
   ThemeManager.init();

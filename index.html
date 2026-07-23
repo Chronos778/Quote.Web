@@ -78,9 +78,8 @@
     <!-- Icons -->
     <script src="lucide.min.js" defer></script>
 
-    <!-- Styles (Non-render-blocking) -->
-    <link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'" />
-    <noscript><link rel="stylesheet" href="styles.css" /></noscript>
+    <!-- Styles (Non-render-blocking via media trick) -->
+    <link rel="stylesheet" href="styles.css" media="print" onload="this.media='all'" />
 
     <!-- Runtime config -->
     <script src="config.js" defer></script>
