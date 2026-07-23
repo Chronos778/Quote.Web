@@ -46,15 +46,20 @@ export const PushNotificationManager = {
       let subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
-        await subscription.unsubscribe();
-        const unsubResponse = await fetch(`${apiBase}/push/unsubscribe`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ endpoint: subscription.endpoint }),
-        });
-        if (!unsubResponse.ok) {
-          console.warn('Server rejected push unsubscribe', unsubResponse.status);
+        // Notify server first, then unsubscribe locally
+        try {
+          const unsubResponse = await fetch(`${apiBase}/push/unsubscribe`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: subscription.endpoint }),
+          });
+          if (!unsubResponse.ok) {
+            console.warn('Server rejected push unsubscribe', unsubResponse.status);
+          }
+        } catch (e) {
+          console.warn('Server push unsubscribe failed', e);
         }
+        await subscription.unsubscribe();
         this.updateBellUI(false);
         showToastFn('Notifications disabled');
       } else {
