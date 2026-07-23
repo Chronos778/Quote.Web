@@ -522,19 +522,20 @@ document.addEventListener('DOMContentLoaded', () => {
   registerGlobalErrorHandlers();
 
   // Defer heavy paint/layout work to avoid forced reflow and main-thread blocking during init
-  // Use requestIdleCallback to ensure it runs only when the browser is idle, freeing up the main thread for LCP
-  const deferHeavyWork = window.requestIdleCallback || ((cb) => setTimeout(cb, 1));
-  deferHeavyWork(() => {
-    // Icons
-    if (window.lucide) {
-      lucide.createIcons();
+  // Use requestIdleCallback with a fallback, and stagger the tasks.
+  setTimeout(() => {
+    if (window.requestIdleCallback) {
+      requestIdleCallback(() => {
+        if (window.lucide) lucide.createIcons();
+      });
     } else {
-      console.warn('Lucide icons not loaded (offline?)');
+      if (window.lucide) lucide.createIcons();
     }
+  }, 1000);
 
-    // Starfield
+  setTimeout(() => {
     window.starfieldInstance = new Starfield('starfield');
-  });
+  }, 500);
   setActiveNav('discover');
 
   ThemeManager.init();
