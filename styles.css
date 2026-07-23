@@ -257,7 +257,7 @@ canvas#starfield {
 .brand-logo {
   min-width: 24px;
   height: 24px;
-  background: url('/assets/icons/icon-192.png') center/contain no-repeat;
+  background: url('./assets/icons/icon-192.png') center/contain no-repeat;
   border-radius: 6px;
   box-shadow: 0 0 15px var(--accent-glow);
 }
