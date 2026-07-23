@@ -644,9 +644,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const base64 = hash.replace('#quote=', '');
       const decoded = JSON.parse(decodeURIComponent(escape(atob(base64))));
-      if (decoded.text) {
+      const quote = normalizeQuote(decoded);
+      if (quote && quote.text.length <= 1000) {
         const requestId = ++activeQuoteRequestId;
-        renderQuote(decoded, requestId);
+        renderQuote(quote, requestId);
         return;
       }
     } catch (e) {
