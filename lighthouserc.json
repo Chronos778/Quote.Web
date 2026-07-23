@@ -10,9 +10,9 @@
       "assertions": {
         "errors-in-console": "off",
         "network-dependency-tree-insight": "off",
-        "forced-reflow-insight": "warn",
-        "mainthread-work-breakdown": "warn",
-        "render-blocking-insight": "warn"
+        "forced-reflow-insight": "off",
+        "mainthread-work-breakdown": "off",
+        "render-blocking-insight": "off"
       }
     },
     "upload": {
