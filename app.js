@@ -10,7 +10,7 @@ import { SearchManager } from './js/search.js';
 
 // --- Application State & Logic ---
 
-const QUOTE_RENDER_DELAY_MS = 300;
+const QUOTE_RENDER_DELAY_MS = 100;
 let lastFocusedElementBeforeOverlay = null;
 let activeQuoteRequestId = 0;
 
@@ -531,11 +531,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       if (window.lucide) lucide.createIcons();
     }
-  }, 1000);
+  }, 50);
 
   setTimeout(() => {
     window.starfieldInstance = new Starfield('starfield');
-  }, 500);
+  }, 100);
   setActiveNav('discover');
 
   ThemeManager.init();
