@@ -78,13 +78,31 @@ export const FavoritesManager = {
       return;
     }
 
-    ui.drawerBody.innerHTML = this.favorites.map((f, i) => `
-      <div class="cmd-item" tabindex="0" data-action="render-favorite" data-index="${i}">
-        <div class="cmd-item-content">
-          <div class="cmd-item-text">"${f.text}"</div>
-          <div class="cmd-item-author">${f.author}</div>
-        </div>
-      </div>
-    `).join('');
+    const fragment = document.createDocumentFragment();
+    this.favorites.forEach((f, i) => {
+      const item = document.createElement('div');
+      item.className = 'cmd-item';
+      item.tabIndex = 0;
+      item.setAttribute('data-action', 'render-favorite');
+      item.setAttribute('data-index', String(i));
+
+      const content = document.createElement('div');
+      content.className = 'cmd-item-content';
+
+      const text = document.createElement('div');
+      text.className = 'cmd-item-text';
+      text.textContent = `"${f.text}"`;
+
+      const author = document.createElement('div');
+      author.className = 'cmd-item-author';
+      author.textContent = f.author;
+
+      content.appendChild(text);
+      content.appendChild(author);
+      item.appendChild(content);
+      fragment.appendChild(item);
+    });
+    ui.drawerBody.innerHTML = '';
+    ui.drawerBody.appendChild(fragment);
   }
 };
