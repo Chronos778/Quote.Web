@@ -17,7 +17,7 @@ export class Starfield {
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => this.resize(), STARFIELD_RESIZE_DEBOUNCE_MS);
+      resizeTimer = setTimeout(() => requestAnimationFrame(() => this.resize()), STARFIELD_RESIZE_DEBOUNCE_MS);
     });
     document.addEventListener('visibilitychange', () => this.handleVisibilityChange());
     this.createElements();
@@ -40,12 +40,16 @@ export class Starfield {
   }
 
   resize() {
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-
+    // Batch layout reads
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    this.canvas.width = Math.floor(this.width * dpr);
-    this.canvas.height = Math.floor(this.height * dpr);
+
+    // Then batch writes (no interleaved reads)
+    this.width = width;
+    this.height = height;
+    this.canvas.width = Math.floor(width * dpr);
+    this.canvas.height = Math.floor(height * dpr);
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     this.createElements();

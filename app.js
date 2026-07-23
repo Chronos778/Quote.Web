@@ -521,15 +521,18 @@ document.addEventListener('DOMContentLoaded', () => {
   registerServiceWorker();
   registerGlobalErrorHandlers();
 
-  // Icons
-  if (window.lucide) {
-    lucide.createIcons();
-  } else {
-    console.warn('Lucide icons not loaded (offline?)');
-  }
+  // Defer heavy paint/layout work to avoid forced reflow during init
+  requestAnimationFrame(() => {
+    // Icons
+    if (window.lucide) {
+      lucide.createIcons();
+    } else {
+      console.warn('Lucide icons not loaded (offline?)');
+    }
 
-  // Starfield
-  window.starfieldInstance = new Starfield('starfield');
+    // Starfield
+    window.starfieldInstance = new Starfield('starfield');
+  });
   setActiveNav('discover');
 
   ThemeManager.init();
